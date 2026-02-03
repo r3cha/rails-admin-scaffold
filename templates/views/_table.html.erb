@@ -1,0 +1,176 @@
+<%# Template: Table Partial for Resource Listing
+#
+# Variables to replace:
+#   {namespace} - Lowercase namespace (e.g., admin)
+#   {MODEL} - Model class name (e.g., User)
+#   {model} - Lowercase singular (e.g., user)
+#   {models} - Lowercase plural (e.g., users)
+#   {TABLE_COLUMNS} - Array of columns to display [{name: "email", type: "string"}, ...]
+#   {HAS_SOFT_DELETE} - true/false
+#
+# CSS classes use {CSS_FRAMEWORK} placeholders.
+%>
+
+<div class="{CSS: table-responsive}">
+  <table class="{CSS: table}">
+    <thead class="{CSS: table-header}">
+      <tr>
+        <%# Bulk Selection Checkbox %>
+        <th class="{CSS: th} {CSS: th-checkbox}">
+          <input type="checkbox"
+                 id="select-all"
+                 class="{CSS: checkbox}"
+                 data-bulk-select-target="selectAll"
+                 data-action="change->bulk-select#toggleAll">
+        </th>
+
+        <%# ID Column %>
+        <th class="{CSS: th}">
+          <%%= sort_link(@q, :id, "ID", default_order: :desc) %>
+        </th>
+
+        <%#
+        # TABLE COLUMN HEADERS:
+        # Replace with actual columns from model analysis.
+        # Use sort_link for sortable columns.
+        %>
+
+        <%# String/Text Column %>
+        <%# <th class="{CSS: th}">
+          <%%= sort_link(@q, :name, "Name") %>
+        </th> %>
+
+        <%# Boolean Column %>
+        <%# <th class="{CSS: th}">
+          <%%= sort_link(@q, :active, "Active") %>
+        </th> %>
+
+        <%# Enum Column %>
+        <%# <th class="{CSS: th}">
+          <%%= sort_link(@q, :status, "Status") %>
+        </th> %>
+
+        <%# Belongs To Column %>
+        <%# <th class="{CSS: th}">Author</th> %>
+
+        <%# Timestamps %>
+        <th class="{CSS: th}">
+          <%%= sort_link(@q, :created_at, "Created", default_order: :desc) %>
+        </th>
+
+        <%# Soft Delete Column %>
+        <% if {HAS_SOFT_DELETE} && params[:show_deleted] == "1" %>
+          <th class="{CSS: th}">Deleted At</th>
+        <% end %>
+
+        <%# Actions Column %>
+        <th class="{CSS: th} {CSS: th-actions}">Actions</th>
+      </tr>
+    </thead>
+
+    <tbody class="{CSS: table-body}">
+      <%% {models}.each do |{model}| %>
+        <tr class="{CSS: tr} <%%= {model}.respond_to?(:discarded?) && {model}.discarded? ? '{CSS: tr-deleted}' : '' %>">
+          <%# Bulk Selection Checkbox %>
+          <td class="{CSS: td}">
+            <input type="checkbox"
+                   class="{CSS: checkbox} row-checkbox"
+                   value="<%%= {model}.id %>"
+                   data-bulk-select-target="checkbox"
+                   data-action="change->bulk-select#toggle">
+          </td>
+
+          <%# ID %>
+          <td class="{CSS: td}">
+            <%%= link_to {model}.id, {namespace}_{model}_path({model}), class: "{CSS: link}" %>
+          </td>
+
+          <%#
+          # TABLE CELL VALUES:
+          # Replace with actual columns from model analysis.
+          # See reference/field-mappings.md for display patterns.
+          %>
+
+          <%# String Column (with truncation) %>
+          <%# <td class="{CSS: td}">
+            <%%= truncate({model}.name, length: 50) %>
+          </td> %>
+
+          <%# Email Column (with link) %>
+          <%# <td class="{CSS: td}">
+            <%%= mail_to {model}.email, {model}.email, class: "{CSS: link}" %>
+          </td> %>
+
+          <%# Boolean Column (badge) %>
+          <%# <td class="{CSS: td}">
+            <span class="{CSS: badge} <%%= {model}.active? ? '{CSS: badge-success}' : '{CSS: badge-secondary}' %>">
+              <%%= {model}.active? ? 'Yes' : 'No' %>
+            </span>
+          </td> %>
+
+          <%# Enum Column (colored badge) %>
+          <%# <td class="{CSS: td}">
+            <span class="{CSS: badge} {CSS: badge-<%%= {model}.status %>}">
+              <%%= {model}.status.humanize %>
+            </span>
+          </td> %>
+
+          <%# Belongs To Column %>
+          <%# <td class="{CSS: td}">
+            <% if {model}.author %>
+              <%%= link_to {model}.author.name, {namespace}_user_path({model}.author), class: "{CSS: link}" %>
+            <% else %>
+              <span class="{CSS: text-muted}">-</span>
+            <% end %>
+          </td> %>
+
+          <%# Attachment Column (thumbnail) %>
+          <%# <td class="{CSS: td}">
+            <% if {model}.avatar.attached? && {model}.avatar.image? %>
+              <%%= image_tag {model}.avatar.variant(resize_to_limit: [40, 40]), class: "{CSS: img-thumbnail-sm}" %>
+            <% elsif {model}.avatar.attached? %>
+              <%%= link_to "File", rails_blob_path({model}.avatar), class: "{CSS: link}" %>
+            <% else %>
+              <span class="{CSS: text-muted}">-</span>
+            <% end %>
+          </td> %>
+
+          <%# Created At %>
+          <td class="{CSS: td} {CSS: text-muted}">
+            <%%= {model}.created_at&.strftime("%Y-%m-%d %H:%M") %>
+          </td>
+
+          <%# Deleted At (for soft delete) %>
+          <% if {HAS_SOFT_DELETE} && params[:show_deleted] == "1" %>
+            <td class="{CSS: td} {CSS: text-danger}">
+              <%%= {model}.respond_to?(:discarded_at) ? {model}.discarded_at&.strftime("%Y-%m-%d %H:%M") : '-' %>
+            </td>
+          <% end %>
+
+          <%# Action Buttons %>
+          <td class="{CSS: td} {CSS: td-actions}">
+            <div class="{CSS: btn-group}">
+              <%%= link_to "View", {namespace}_{model}_path({model}), class: "{CSS: btn-sm} {CSS: btn-outline}" %>
+              <%%= link_to "Edit", edit_{namespace}_{model}_path({model}), class: "{CSS: btn-sm} {CSS: btn-outline}" %>
+
+              <% if {HAS_SOFT_DELETE} && {model}.respond_to?(:discarded?) && {model}.discarded? %>
+                <%%= button_to "Restore",
+                              restore_{namespace}_{model}_path({model}),
+                              method: :patch,
+                              class: "{CSS: btn-sm} {CSS: btn-success}",
+                              form_class: "{CSS: inline-form}" %>
+              <% else %>
+                <%%= button_to "Delete",
+                              {namespace}_{model}_path({model}),
+                              method: :delete,
+                              class: "{CSS: btn-sm} {CSS: btn-danger}",
+                              form_class: "{CSS: inline-form}",
+                              data: { turbo_confirm: "Are you sure?" } %>
+              <% end %>
+            </div>
+          </td>
+        </tr>
+      <%% end %>
+    </tbody>
+  </table>
+</div>

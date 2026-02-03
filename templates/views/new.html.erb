@@ -1,0 +1,28 @@
+<%# Template: New View for Creating Resource
+#
+# Variables to replace:
+#   {namespace} - Lowercase namespace (e.g., admin)
+#   {MODEL} - Model class name (e.g., User)
+#   {model} - Lowercase singular (e.g., user)
+#   {models} - Lowercase plural (e.g., users)
+#   {MODEL_TITLE} - Human readable singular (e.g., "User")
+#
+# CSS classes use {CSS_FRAMEWORK} placeholders.
+%>
+
+<div class="{CSS: page-header}">
+  <div class="{CSS: header-content}">
+    <div class="{CSS: breadcrumb}">
+      <%%= link_to "{MODEL_TITLE}s", {namespace}_{models}_path, class: "{CSS: breadcrumb-link}" %>
+      <span class="{CSS: breadcrumb-separator}">/</span>
+      <span class="{CSS: breadcrumb-current}">New</span>
+    </div>
+    <h1 class="{CSS: page-title}">New {MODEL_TITLE}</h1>
+  </div>
+</div>
+
+<div class="{CSS: card}">
+  <div class="{CSS: card-body}">
+    <%%= render "{namespace}/{models}/form", {model}: @{model} %>
+  </div>
+</div>

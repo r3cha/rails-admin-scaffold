@@ -1,0 +1,125 @@
+<%# Template: Index View for Resource Listing
+#
+# Variables to replace:
+#   {namespace} - Lowercase namespace (e.g., admin)
+#   {MODEL} - Model class name (e.g., User)
+#   {model} - Lowercase singular (e.g., user)
+#   {models} - Lowercase plural (e.g., users)
+#   {MODEL_TITLE} - Human readable title (e.g., "Users", "Blog Posts")
+#   {TABLE_COLUMNS} - Array of columns to display
+#   {HAS_SOFT_DELETE} - true/false for soft delete support
+#
+# CSS classes use {CSS_FRAMEWORK} placeholders - replace with actual classes.
+%>
+
+<div class="{CSS: page-header}">
+  <div class="{CSS: header-content}">
+    <h1 class="{CSS: page-title}">{MODEL_TITLE}</h1>
+    <div class="{CSS: header-actions}">
+      <%%= link_to "New {MODEL}", new_{namespace}_{model}_path, class: "{CSS: btn-primary}" %>
+    </div>
+  </div>
+</div>
+
+<%# Filters %>
+<div class="{CSS: card} {CSS: mb-4}">
+  <div class="{CSS: card-body}">
+    <%%= render "{namespace}/{models}/filters", q: @q %>
+  </div>
+</div>
+
+<%# Bulk Actions Bar (hidden by default) %>
+<div id="bulk-actions-bar"
+     class="{CSS: alert-info} {CSS: mb-4} hidden"
+     data-controller="bulk-select"
+     data-bulk-select-target="bulkActions">
+  <div class="{CSS: flex-between}">
+    <span>
+      <strong data-bulk-select-target="selectedCount">0</strong> items selected
+    </span>
+    <div class="{CSS: btn-group}">
+      <%%= button_to "Delete Selected",
+                    bulk_destroy_{namespace}_{models}_path,
+                    method: :delete,
+                    params: { ids: [] },
+                    class: "{CSS: btn-danger} {CSS: btn-sm}",
+                    form: { data: { turbo_confirm: "Are you sure you want to delete selected records?" } },
+                    id: "bulk-delete-btn" %>
+    </div>
+  </div>
+</div>
+
+<%# Data Table %>
+<div class="{CSS: card}">
+  <div class="{CSS: card-body} {CSS: p-0}">
+    <% if @{models}.any? %>
+      <%%= render "{namespace}/{models}/table", {models}: @{models} %>
+    <% else %>
+      <div class="{CSS: empty-state}">
+        <p class="{CSS: text-muted}">No {models} found.</p>
+        <%%= link_to "Create the first {model}", new_{namespace}_{model}_path, class: "{CSS: btn-primary}" %>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Pagination & Export %>
+  <div class="{CSS: card-footer} {CSS: flex-between}">
+    <div class="{CSS: pagination-info}">
+      <%%= pagy_info(@pagy) %>
+    </div>
+    <div class="{CSS: flex-center} {CSS: gap-4}">
+      <div class="{CSS: export-buttons}">
+        <%%= link_to "Export CSV",
+                    {namespace}_{models}_path(format: :csv, q: params[:q]),
+                    class: "{CSS: btn-outline} {CSS: btn-sm}" %>
+        <%%= link_to "Export Excel",
+                    {namespace}_{models}_path(format: :xlsx, q: params[:q]),
+                    class: "{CSS: btn-outline} {CSS: btn-sm}" %>
+      </div>
+      <div class="{CSS: pagination-nav}">
+        <%%== pagy_nav(@pagy) %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# JavaScript for bulk selection (non-Stimulus fallback) %>
+<% unless defined?(Stimulus) %>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const selectAll = document.getElementById('select-all');
+  const checkboxes = document.querySelectorAll('.row-checkbox');
+  const bulkBar = document.getElementById('bulk-actions-bar');
+  const countSpan = document.querySelector('[data-bulk-select-target="selectedCount"]');
+  const deleteBtn = document.getElementById('bulk-delete-btn');
+
+  function updateUI() {
+    const checked = Array.from(checkboxes).filter(cb => cb.checked);
+    const count = checked.length;
+
+    bulkBar.classList.toggle('hidden', count === 0);
+    countSpan.textContent = count;
+
+    // Update hidden field with selected IDs
+    const ids = checked.map(cb => cb.value);
+    deleteBtn.closest('form').querySelector('input[name="ids[]"]')?.remove();
+    ids.forEach(id => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'ids[]';
+      input.value = id;
+      deleteBtn.closest('form').appendChild(input);
+    });
+  }
+
+  selectAll?.addEventListener('change', function() {
+    checkboxes.forEach(cb => cb.checked = this.checked);
+    updateUI();
+  });
+
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', updateUI);
+  });
+});
+</script>
+<% end %>

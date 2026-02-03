@@ -1,0 +1,116 @@
+<%# Template: Filters Partial for Search and Filtering
+#
+# Variables to replace:
+#   {namespace} - Lowercase namespace (e.g., admin)
+#   {MODEL} - Model class name (e.g., User)
+#   {model} - Lowercase singular (e.g., user)
+#   {models} - Lowercase plural (e.g., users)
+#   {FILTER_FIELDS} - Array of filterable fields [{name: "email", type: "string"}, ...]
+#   {ASSOCIATIONS} - Array of belongs_to associations for filter selects
+#   {ENUMS} - Array of enums for filter selects
+#   {HAS_SOFT_DELETE} - true/false
+#
+# CSS classes use {CSS_FRAMEWORK} placeholders.
+%>
+
+<%%= search_form_for @q, url: {namespace}_{models}_path, method: :get, class: "{CSS: filter-form}" do |f| %>
+
+  <div class="{CSS: filter-grid}">
+    <%# Text Search (searches multiple string fields) %>
+    <div class="{CSS: form-group}">
+      <%%= f.label :name_or_email_cont, "Search", class: "{CSS: label}" %>
+      <%%= f.search_field :name_or_email_cont,
+                         class: "{CSS: input}",
+                         placeholder: "Search by name or email..." %>
+    </div>
+
+    <%#
+    # FILTER FIELD PATTERNS:
+    # Replace/add fields based on model schema.
+    # Ransack predicates:
+    #   _eq = equals
+    #   _cont = contains
+    #   _gteq = greater than or equal
+    #   _lteq = less than or equal
+    #   _in = in array
+    #   _true / _false = boolean
+    %>
+
+    <%# Enum Filter %>
+    <%# <div class="{CSS: form-group}">
+      <%%= f.label :status_eq, "Status", class: "{CSS: label}" %>
+      <%%= f.select :status_eq,
+                   {MODEL}.statuses.keys.map { |s| [s.humanize, s] },
+                   { include_blank: "All statuses" },
+                   class: "{CSS: select}" %>
+    </div> %>
+
+    <%# Boolean Filter %>
+    <%# <div class="{CSS: form-group}">
+      <%%= f.label :active_eq, "Active", class: "{CSS: label}" %>
+      <%%= f.select :active_eq,
+                   [["Yes", true], ["No", false]],
+                   { include_blank: "All" },
+                   class: "{CSS: select}" %>
+    </div> %>
+
+    <%# Belongs To Filter %>
+    <%# <div class="{CSS: form-group}">
+      <%%= f.label :author_id_eq, "Author", class: "{CSS: label}" %>
+      <%%= f.collection_select :author_id_eq,
+                              User.order(:name),
+                              :id, :name,
+                              { include_blank: "All authors" },
+                              class: "{CSS: select}" %>
+    </div> %>
+
+    <%# Date Range Filter - From %>
+    <div class="{CSS: form-group}">
+      <%%= f.label :created_at_gteq, "Created from", class: "{CSS: label}" %>
+      <%%= f.date_field :created_at_gteq, class: "{CSS: input}" %>
+    </div>
+
+    <%# Date Range Filter - To %>
+    <div class="{CSS: form-group}">
+      <%%= f.label :created_at_lteq, "Created to", class: "{CSS: label}" %>
+      <%%= f.date_field :created_at_lteq, class: "{CSS: input}" %>
+    </div>
+
+    <%# Soft Delete Filter %>
+    <% if {HAS_SOFT_DELETE} %>
+      <div class="{CSS: form-group}">
+        <div class="{CSS: checkbox-wrapper}">
+          <%%= check_box_tag :show_deleted, "1", params[:show_deleted] == "1", class: "{CSS: checkbox}" %>
+          <%%= label_tag :show_deleted, "Show deleted", class: "{CSS: checkbox-label}" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Sort Order %>
+  <div class="{CSS: filter-row} {CSS: mt-2}">
+    <div class="{CSS: form-group-inline}">
+      <%%= f.label :s, "Sort by", class: "{CSS: label}" %>
+      <%%= f.select :s,
+                   [
+                     ["Newest first", "created_at desc"],
+                     ["Oldest first", "created_at asc"],
+                     ["Recently updated", "updated_at desc"],
+                     ["ID (ascending)", "id asc"],
+                     ["ID (descending)", "id desc"]
+                     # Add model-specific sort options:
+                     # ["Name (A-Z)", "name asc"],
+                     # ["Name (Z-A)", "name desc"]
+                   ],
+                   { include_blank: false },
+                   class: "{CSS: select}" %>
+    </div>
+  </div>
+
+  <%# Filter Actions %>
+  <div class="{CSS: filter-actions}">
+    <%%= f.submit "Apply Filters", class: "{CSS: btn-primary}" %>
+    <%%= link_to "Clear Filters", {namespace}_{models}_path, class: "{CSS: btn-outline}" %>
+  </div>
+
+<%% end %>

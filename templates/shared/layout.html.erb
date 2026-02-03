@@ -1,0 +1,153 @@
+<%# Template: Admin Layout
+#
+# Variables to replace:
+#   {NAMESPACE} - Module name (e.g., Admin)
+#   {namespace} - Lowercase namespace (e.g., admin)
+#   {CSS_FRAMEWORK} - tailwind, bootstrap, or bulma
+#   {APP_NAME} - Application name (Rails.application.class.module_parent_name)
+#
+# CSS classes use {CSS_FRAMEWORK} placeholders.
+%>
+<!DOCTYPE html>
+<html lang="<%%= I18n.locale %>">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title><%%= content_for?(:title) ? yield(:title) : "{APP_NAME} Admin" %></title>
+
+  <%%= csrf_meta_tags %>
+  <%%= csp_meta_tag %>
+
+  <%# Stylesheets %>
+  <%%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+
+  <%# For Tailwind: Add admin-specific styles if needed %>
+  <%# For Bootstrap: <%%= stylesheet_link_tag "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" %> %>
+  <%# For Bulma: <%%= stylesheet_link_tag "https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css" %> %>
+
+  <%# JavaScript %>
+  <%%= javascript_importmap_tags %>
+  <%# Or for jsbundling: <%%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %> %>
+
+  <style>
+    /* Admin-specific base styles */
+    :root {
+      --admin-sidebar-width: 256px;
+      --admin-header-height: 64px;
+    }
+
+    /* Tailwind-specific overrides */
+    .admin-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .admin-sidebar {
+      width: var(--admin-sidebar-width);
+      flex-shrink: 0;
+    }
+
+    .admin-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    @media (max-width: 768px) {
+      .admin-sidebar {
+        position: fixed;
+        left: -100%;
+        z-index: 50;
+        transition: left 0.3s ease;
+      }
+
+      .admin-sidebar.open {
+        left: 0;
+      }
+    }
+  </style>
+</head>
+
+<body class="{CSS: body-class}">
+  <div class="admin-layout">
+    <%# Sidebar Navigation %>
+    <aside class="admin-sidebar {CSS: sidebar-bg}">
+      <%%= render "{namespace}/shared/sidebar" %>
+    </aside>
+
+    <%# Main Content Area %>
+    <main class="admin-main {CSS: main-bg}">
+      <%# Top Header Bar %>
+      <header class="{CSS: header}">
+        <div class="{CSS: header-container}">
+          <%# Mobile Menu Toggle %>
+          <button type="button"
+                  class="{CSS: menu-toggle} {CSS: md-hidden}"
+                  onclick="document.querySelector('.admin-sidebar').classList.toggle('open')">
+            <svg class="{CSS: icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+
+          <%# Breadcrumb / Page Title (optional) %>
+          <div class="{CSS: header-title}">
+            <%%= yield :header_title if content_for?(:header_title) %>
+          </div>
+
+          <%# Right Side: User Menu %>
+          <div class="{CSS: header-right}">
+            <%# Current User Info %>
+            <% if respond_to?(:current_admin_user) && current_admin_user %>
+              <span class="{CSS: text-muted}"><%%= current_admin_user.email %></span>
+              <%%= link_to "Logout", destroy_admin_user_session_path, method: :delete, class: "{CSS: btn-outline} {CSS: btn-sm}" %>
+            <% elsif respond_to?(:current_user) && current_user %>
+              <span class="{CSS: text-muted}"><%%= current_user.email %></span>
+              <%%= link_to "Logout", destroy_user_session_path, method: :delete, class: "{CSS: btn-outline} {CSS: btn-sm}" %>
+            <% end %>
+          </div>
+        </div>
+      </header>
+
+      <%# Flash Messages %>
+      <%%= render "{namespace}/shared/flash" %>
+
+      <%# Page Content %>
+      <div class="{CSS: content-container}">
+        <%%= yield %>
+      </div>
+
+      <%# Footer %>
+      <footer class="{CSS: footer}">
+        <p class="{CSS: text-muted} {CSS: text-sm}">
+          {APP_NAME} Admin &copy; <%%= Time.current.year %>
+        </p>
+      </footer>
+    </main>
+  </div>
+
+  <%# Mobile Sidebar Overlay %>
+  <div class="admin-overlay hidden {CSS: md-hidden}"
+       onclick="document.querySelector('.admin-sidebar').classList.remove('open'); this.classList.add('hidden')">
+  </div>
+
+  <script>
+    // Simple mobile menu behavior
+    document.addEventListener('turbo:load', function() {
+      const sidebar = document.querySelector('.admin-sidebar');
+      const overlay = document.querySelector('.admin-overlay');
+
+      if (sidebar && overlay) {
+        sidebar.addEventListener('transitionend', function() {
+          if (!sidebar.classList.contains('open')) {
+            overlay.classList.add('hidden');
+          }
+        });
+
+        document.querySelector('.{CSS: menu-toggle}')?.addEventListener('click', function() {
+          overlay.classList.remove('hidden');
+        });
+      }
+    });
+  </script>
+</body>
+</html>

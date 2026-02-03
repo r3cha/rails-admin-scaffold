@@ -1,0 +1,99 @@
+<%# Template: Sidebar Navigation
+#
+# Variables to replace:
+#   {NAMESPACE} - Module name (e.g., Admin)
+#   {namespace} - Lowercase namespace (e.g., admin)
+#   {APP_NAME} - Application name
+#   {RESOURCES} - Array of resources [{name: "Users", path: admin_users_path, icon: "users"}, ...]
+#
+# CSS classes use {CSS_FRAMEWORK} placeholders.
+%>
+
+<div class="{CSS: sidebar-container}">
+  <%# Logo / Brand %>
+  <div class="{CSS: sidebar-header}">
+    <%%= link_to {namespace}_root_path, class: "{CSS: sidebar-brand}" do %>
+      <span class="{CSS: brand-text}">{APP_NAME}</span>
+      <span class="{CSS: brand-badge}">Admin</span>
+    <%% end %>
+  </div>
+
+  <%# Navigation Links %>
+  <nav class="{CSS: sidebar-nav}">
+    <%# Dashboard Link %>
+    <div class="{CSS: nav-section}">
+      <%%= link_to {namespace}_root_path,
+                  class: "{CSS: nav-link} <%%= 'active' if controller_name == 'dashboard' %>" do %>
+        <svg class="{CSS: nav-icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+        </svg>
+        <span>Dashboard</span>
+      <%% end %>
+    </div>
+
+    <%# Resources Section %>
+    <div class="{CSS: nav-section}">
+      <h3 class="{CSS: nav-section-title}">Resources</h3>
+
+      <%#
+      # RESOURCE NAVIGATION:
+      # Replace with actual resources from model discovery.
+      # Example for each model:
+      %>
+
+      <%# Example: Users link
+      <%%= link_to {namespace}_users_path,
+                  class: "{CSS: nav-link} <%%= 'active' if controller_name == 'users' %>" do %>
+        <svg class="{CSS: nav-icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+        </svg>
+        <span>Users</span>
+        <span class="{CSS: nav-badge}"><%%= User.count %></span>
+      <%% end %>
+      %>
+
+      <%# Dynamic resource links (use admin_resources helper if defined) %>
+      <%% if respond_to?(:admin_resources) && admin_resources.any? %>
+        <%% admin_resources.each do |resource| %>
+          <%%= link_to resource[:path],
+                      class: "{CSS: nav-link} <%%= 'active' if controller_name == resource[:controller] %>" do %>
+            <%# Icon based on resource type %>
+            <svg class="{CSS: nav-icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+            <span><%%= resource[:name] %></span>
+            <%% if resource[:model] %>
+              <span class="{CSS: nav-badge}"><%%= resource[:model].count %></span>
+            <%% end %>
+          <%% end %>
+        <%% end %>
+      <%% else %>
+        <p class="{CSS: nav-empty}">No resources configured</p>
+      <%% end %>
+    </div>
+
+    <%# Settings Section (optional) %>
+    <div class="{CSS: nav-section}">
+      <h3 class="{CSS: nav-section-title}">Settings</h3>
+
+      <%# Back to Main App %>
+      <%%= link_to root_path, class: "{CSS: nav-link}" do %>
+        <svg class="{CSS: nav-icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z"/>
+        </svg>
+        <span>Back to Site</span>
+      <%% end %>
+    </div>
+  </nav>
+
+  <%# Sidebar Footer %>
+  <div class="{CSS: sidebar-footer}">
+    <p class="{CSS: text-xs} {CSS: text-muted}">
+      Rails Admin Scaffold
+    </p>
+  </div>
+</div>

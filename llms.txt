@@ -1,0 +1,30 @@
+# Rails Admin Scaffold
+
+> A Claude Code skill that generates full-featured CRUD admin panels for Rails 6.1+ applications.
+
+## Overview
+
+This is a template-based code generation skill invoked via `/rails-admin-scaffold` command in Claude Code. It auto-detects project configuration (CSS framework, pagination gem, test framework) and generates controllers, views, routes, and tests for admin CRUD operations.
+
+## Key Files
+
+- SKILL.md: Main skill definition with 5-phase generation workflow
+- README.md: User documentation and installation guide
+- templates/: ERB and Ruby templates for generated code
+- css/: Framework-specific class mappings (Tailwind, Bootstrap, Bulma)
+- reference/: Pattern documentation and field type mappings
+
+## Architecture
+
+Templates use placeholders ({NAMESPACE}, {MODEL}, {CSS: class-name}) replaced during generation. The workflow consists of: Detection → Model Analysis → Interactive Questions → Generation → Verification.
+
+## Supported Features
+
+- Ransack-powered search and filtering
+- Pagination (Pagy, Kaminari, will_paginate)
+- CSV/Excel export
+- Bulk actions
+- Soft delete support (Paranoia, Discard)
+- Authentication (Devise, HTTP Basic, custom)
+- i18n support
+- RSpec/Minitest test generation

@@ -1,0 +1,28 @@
+<%# Template: Table Layout Wrapper
+#
+# This partial wraps table content with consistent styling.
+# Use as: render layout: "{namespace}/shared/table_layout" do ... end
+#
+# CSS classes use {CSS_FRAMEWORK} placeholders.
+%>
+
+<div class="{CSS: table-container}">
+  <%# Table Toolbar (filters, search, bulk actions) %>
+  <%% if content_for?(:table_toolbar) %>
+    <div class="{CSS: table-toolbar}">
+      <%%= yield :table_toolbar %>
+    </div>
+  <%% end %>
+
+  <%# Main Table Content %>
+  <div class="{CSS: table-wrapper}">
+    <%%= yield %>
+  </div>
+
+  <%# Table Footer (pagination, export buttons) %>
+  <%% if content_for?(:table_footer) %>
+    <div class="{CSS: table-footer}">
+      <%%= yield :table_footer %>
+    </div>
+  <%% end %>
+</div>
