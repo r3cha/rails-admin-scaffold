@@ -28,7 +28,7 @@ Add the skill to your Claude Code settings for use in any project:
 mkdir -p ~/.claude/skills
 
 # Clone the repository
-git clone https://github.com/your-username/rails-admin-scaffold ~/.claude/skills/rails-admin-scaffold
+git clone https://github.com/r3cha/rails-admin-scaffold ~/.claude/skills/rails-admin-scaffold
 ```
 
 Then add to your Claude Code settings (`~/.claude/settings.json`):
@@ -48,7 +48,7 @@ Add the skill directly to your Rails project:
 ```bash
 # In your Rails project root
 mkdir -p .claude/skills
-git clone https://github.com/your-username/rails-admin-scaffold .claude/skills/rails-admin-scaffold
+git clone https://github.com/r3cha/rails-admin-scaffold .claude/skills/rails-admin-scaffold
 ```
 
 Then add to your project's `.claude/settings.json`:

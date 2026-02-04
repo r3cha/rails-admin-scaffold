@@ -48,6 +48,8 @@ This is a **Claude Code skill** (not a gem or Rails app) that generates full-fea
 │  - Check app/controllers/admin/         │
 │  - Detect CSS framework                 │
 │  - Detect pagination gem                │
+│  - Detect existing admin (ActiveAdmin,  │
+│    RailsAdmin, custom)                  │
 │  - Collect list of models               │
 └─────────────────────────────────────────┘
     │
@@ -68,10 +70,11 @@ This is a **Claude Code skill** (not a gem or Rails app) that generates full-fea
 │  AskUserQuestion for:                   │
 │  1. Namespace (admin / new_admin)       │
 │  2. Models to exclude                   │
-│  3. Fields to hide in tables            │
-│  4. Authentication (Devise?)            │
-│  5. i18n support                        │
-│  6. Test generation                     │
+│  3. CRUD views (all/select/read-only)   │
+│  4. Fields to hide in tables            │
+│  5. Authentication (Devise?)            │
+│  6. i18n support                        │
+│  7. Test generation                     │
 └─────────────────────────────────────────┘
     │
     ▼
@@ -115,6 +118,11 @@ This is a **Claude Code skill** (not a gem or Rails app) that generates full-fea
 - Scan `app/models/*.rb`
 - Filter out: `application_record.rb`, `concerns/`, abstract classes
 
+**Existing admin detection:**
+- Check Gemfile for `activeadmin`, `rails_admin`, `administrate`
+- If found, analyze existing admin configs to replicate custom features
+- If custom admin exists (`app/controllers/admin/`), extract custom actions, filters, nested forms
+
 ### Phase 2: Model Analysis
 
 For each model, extract:
@@ -129,10 +137,13 @@ For each model, extract:
 1. **Concerns** — `app/controllers/concerns/{ns}/date_range_filterable.rb`
 2. **Base Controller** — `app/controllers/{ns}/base_controller.rb`
 3. **Layout & Shared Partials** — layout, sidebar, table_layout, filter_bar, pagination
-4. **Per-Model Files** — controller + views (index, show, new, edit) + partials (_table, _form, _filters)
+4. **Per-Model Files** — based on CRUD config:
+   - **Full CRUD models**: controller + all views (index, show, new, edit) + partials
+   - **Read-only models**: controller (index, show, export only) + views (index, show) + partials
 5. **Model Modifications** — add `ransackable_attributes`, `ransackable_associations`
-6. **Routes** — namespace block with all resources
+6. **Routes** — namespace block (`resources` for CRUD, `only: [:index, :show]` for read-only)
 7. **Gemfile** — ransack, pagy (if needed)
+8. **Custom features** — if existing admin detected, replicate custom actions/filters/forms
 
 ### Key Rails Patterns Used
 

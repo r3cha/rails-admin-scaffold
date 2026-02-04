@@ -95,6 +95,69 @@ Parse each model file to extract:
 
 Store as: `models = ["User", "Post", "Comment", ...]`
 
+### 1.7 Detect Existing Admin Panels
+
+Check for existing admin implementations to understand current patterns:
+
+```ruby
+# Check Gemfile for admin gems:
+gem 'activeadmin'    # → existing_admin = "activeadmin"
+gem 'rails_admin'    # → existing_admin = "rails_admin"
+gem 'administrate'   # → existing_admin = "administrate"
+```
+
+**If existing admin gem found:**
+
+1. **ActiveAdmin** - Check `app/admin/*.rb` for:
+   - Custom form blocks
+   - Custom show blocks
+   - Filters configuration
+   - Batch actions
+   - Sidebar sections
+
+2. **RailsAdmin** - Check `config/initializers/rails_admin.rb` for:
+   - Custom actions
+   - Field configurations
+   - Navigation labels
+
+3. **Administrate** - Check `app/dashboards/*_dashboard.rb` for:
+   - COLLECTION_ATTRIBUTES
+   - SHOW_PAGE_ATTRIBUTES
+   - FORM_ATTRIBUTES
+
+**If custom admin exists** (`app/controllers/admin/` without gems):
+
+Analyze existing controllers and views:
+```bash
+# List existing admin controllers
+ls app/controllers/admin/*_controller.rb
+
+# List existing admin views
+ls -la app/views/admin/*/
+```
+
+For each existing admin resource, extract:
+- Custom actions (beyond standard CRUD)
+- Custom filters or scopes
+- Special display logic in show views
+- Custom form fields or nested forms
+- Bulk actions
+- Export functionality
+
+Store as:
+```ruby
+existing_admin_features = {
+  "User" => {
+    custom_actions: ["impersonate", "ban", "export_csv"],
+    custom_filters: ["by_role", "by_status", "date_range"],
+    nested_forms: ["profile", "addresses"],
+    show_sections: ["activity_log", "permissions"],
+    bulk_actions: ["activate", "deactivate"]
+  },
+  # ... other models
+}
+```
+
 ---
 
 ## Phase 2: Model Analysis
@@ -213,7 +276,50 @@ If user selects "Other", use their custom namespace.
 
 If "Select specific models", follow up with multiSelect of model names.
 
-### Question 3: Hidden Fields
+### Question 3: CRUD Views
+
+```json
+{
+  "question": "Which models need full CRUD (create/edit/delete) views?",
+  "header": "CRUD",
+  "options": [
+    {"label": "All models (Recommended)", "description": "Generate full CRUD for all included models"},
+    {"label": "Select models for CRUD", "description": "I'll choose which models get edit forms"},
+    {"label": "Read-only for all", "description": "Only index and show views, no editing"}
+  ],
+  "multiSelect": false
+}
+```
+
+If "Select models for CRUD", follow up with multiSelect of model names:
+
+```json
+{
+  "question": "Select models that need create/edit/delete functionality:",
+  "header": "Editable",
+  "options": [
+    // Dynamically generated from included models list
+    {"label": "User", "description": "Full CRUD for User"},
+    {"label": "Post", "description": "Full CRUD for Post"},
+    // ... etc
+  ],
+  "multiSelect": true
+}
+```
+
+**Note:** If existing admin panel was detected (Section 1.7), inform user:
+
+```
+Detected existing admin panel: {activeadmin|rails_admin|custom}
+
+The following models have custom admin functionality that will be replicated:
+- User: custom actions (impersonate, ban), nested forms (profile)
+- Order: custom filters (by_status, date_range), export
+
+Do you want to include these custom features?
+```
+
+### Question 4: Hidden Fields
 
 ```json
 {
@@ -229,7 +335,7 @@ If "Select specific models", follow up with multiSelect of model names.
 }
 ```
 
-### Question 4: Authentication
+### Question 5: Authentication
 
 ```json
 {
@@ -245,7 +351,7 @@ If "Select specific models", follow up with multiSelect of model names.
 }
 ```
 
-### Question 5: Internationalization
+### Question 6: Internationalization
 
 ```json
 {
@@ -261,7 +367,7 @@ If "Select specific models", follow up with multiSelect of model names.
 }
 ```
 
-### Question 6: Tests
+### Question 7: Tests
 
 ```json
 {
@@ -270,6 +376,22 @@ If "Select specific models", follow up with multiSelect of model names.
   "options": [
     {"label": "Yes (Recommended)", "description": "Generate controller tests"},
     {"label": "No", "description": "Skip test generation"}
+  ],
+  "multiSelect": false
+}
+```
+
+### Question 8: Export
+
+```json
+{
+  "question": "What export functionality do you need?",
+  "header": "Export",
+  "options": [
+    {"label": "CSV with field selection (Recommended)", "description": "Export to CSV, admin chooses which fields"},
+    {"label": "CSV + Excel with field selection", "description": "Both formats, admin chooses fields"},
+    {"label": "Simple CSV (all fields)", "description": "Quick export without field picker"},
+    {"label": "No export", "description": "Skip export functionality"}
   ],
   "multiSelect": false
 }
@@ -381,7 +503,9 @@ For each included model, create `app/controllers/{namespace}/{model_plural}_cont
 
 Use `templates/controllers/resource_controller.rb` as base.
 
-Key features:
+**Based on CRUD configuration (Question 3):**
+
+**If model has full CRUD:**
 - `index` with ransack filtering and pagy pagination
 - `show` with association preloading
 - `new/create` with strong parameters
@@ -391,23 +515,65 @@ Key features:
 - `bulk_destroy` action
 - `restore` action (if soft delete)
 
+**If model is read-only:**
+- `index` with ransack filtering and pagy pagination
+- `show` with association preloading
+- `export` action for CSV/Excel
+- NO new/create/edit/update/destroy actions
+
+**If existing admin features detected (Section 1.7):**
+
+Replicate custom functionality from existing admin:
+
+```ruby
+# Example: If ActiveAdmin had custom action
+member_action :impersonate, method: :post do
+  # Replicate as:
+end
+
+# Becomes in new controller:
+def impersonate
+  @user = User.find(params[:id])
+  # ... implementation
+end
+```
+
+Include detected features:
+- Custom actions → add as controller methods
+- Custom filters → add to ransack configuration
+- Nested forms → include in strong parameters and form
+- Custom show sections → add to show view
+- Bulk actions → add to bulk_actions concern
+
 ### 4.7 Create Resource Views
 
 For each included model, create views in `app/views/{namespace}/{model_plural}/`:
 
+**Based on CRUD configuration (Question 3):**
+
+#### All models (read-only and CRUD):
+
 **index.html.erb** - Use `templates/views/index.html.erb`:
 - Filter form with ransack
 - Data table with sortable columns
-- Bulk action checkboxes
 - Export buttons
 - Pagination
+- If CRUD: "New" button, bulk action checkboxes, edit/delete links
+- If read-only: only "View" links, no bulk actions
 
 **show.html.erb** - Use `templates/views/show.html.erb`:
 - Field display based on type
 - Associated records lists
-- Action buttons (Edit, Delete, Back)
 - Pretty JSON for jsonb fields
 - Image previews for attachments
+- If CRUD: Edit, Delete, Back buttons
+- If read-only: only Back button
+
+**_table.html.erb** - Use `templates/views/_table.html.erb`
+
+**_filters.html.erb** - Use `templates/views/_filters.html.erb`
+
+#### Only for models with full CRUD:
 
 **new.html.erb** - Use `templates/views/new.html.erb`
 
@@ -420,9 +586,13 @@ For each included model, create views in `app/views/{namespace}/{model_plural}/`
 - File upload fields with previews
 - JSON textarea for jsonb
 
-**_table.html.erb** - Use `templates/views/_table.html.erb`
+#### If existing admin features detected:
 
-**_filters.html.erb** - Use `templates/views/_filters.html.erb`
+Replicate custom view sections from existing admin:
+- Custom show page sections → add to show.html.erb
+- Custom index columns → add to _table.html.erb
+- Custom form fields → add to _form.html.erb
+- Nested resource forms → add accepts_nested_attributes and fields_for
 
 ### 4.8 Add Ransackable Methods to Models
 
@@ -446,11 +616,13 @@ end
 
 Add to `config/routes.rb`:
 
+**Based on CRUD configuration (Question 3):**
+
 ```ruby
 namespace :{namespace} do
   root to: "dashboard#index"
 
-  # For each model:
+  # For models with FULL CRUD:
   resources :users do
     collection do
       get :export
@@ -458,6 +630,16 @@ namespace :{namespace} do
     end
     member do
       patch :restore  # Only if soft delete
+      # Custom actions from existing admin:
+      post :impersonate  # If detected
+      post :ban          # If detected
+    end
+  end
+
+  # For READ-ONLY models:
+  resources :audit_logs, only: [:index, :show] do
+    collection do
+      get :export
     end
   end
 
@@ -573,40 +755,97 @@ Create `config/locales/{namespace}.{locale}.yml`:
 
 ## Phase 5: Verification
 
-After generation, output these instructions:
+After generation, output these instructions with SPECIFIC details based on user choices:
+
+### Output Template
 
 ```markdown
-## Admin Panel Generated Successfully!
+## ✅ Admin Panel Generated Successfully!
 
-### Next Steps:
+### 🔗 Admin Panel URL
 
-1. **Install dependencies:**
-   ```bash
-   bundle install
-   ```
+**URL:** http://localhost:3000/{namespace}
 
-2. **Run migrations (if AdminUser created):**
+(Replace `localhost:3000` with your actual host if different)
+
+---
+
+### 🔐 Authentication
+
+{IF auth_choice == "Devise AdminUser"}
+**Method:** Devise with AdminUser model
+
+1. Run migrations:
    ```bash
    rails db:migrate
    ```
 
-3. **Create admin user (if using Devise AdminUser):**
+2. Create your first admin user:
    ```bash
    rails console
+   ```
+   ```ruby
    AdminUser.create!(email: 'admin@example.com', password: 'password123')
    ```
 
-4. **Start server:**
+3. Login at: http://localhost:3000/{namespace}/login
+   - Email: admin@example.com
+   - Password: password123
+
+{ELSE IF auth_choice == "Existing User model"}
+**Method:** Using existing User model with admin check
+
+Make sure your User model has an `admin?` method or `admin` boolean field.
+Users with `admin? == true` can access the admin panel.
+
+Login with any admin user credentials at: http://localhost:3000/{namespace}
+
+{ELSE IF auth_choice == "HTTP Basic Auth"}
+**Method:** HTTP Basic Authentication
+
+Credentials are set in `app/controllers/{namespace}/base_controller.rb`:
+- Username: admin
+- Password: (check the controller file)
+
+You can change credentials in the `authenticate` method.
+
+{ELSE IF auth_choice == "Skip authentication"}
+**⚠️ WARNING: No authentication configured!**
+
+Your admin panel is currently **publicly accessible**.
+This is fine for development, but **NEVER deploy to production without authentication**.
+
+**Recommended:** Add Devise authentication:
+
+1. Add to Gemfile:
+   ```ruby
+   gem 'devise'
+   ```
+
+2. Run:
    ```bash
-   rails server
+   bundle install
+   rails generate devise:install
+   rails generate devise AdminUser
+   rails db:migrate
    ```
 
-5. **Visit admin panel:**
-   ```
-   http://localhost:3000/{namespace}
+3. Create admin user:
+   ```ruby
+   AdminUser.create!(email: 'admin@example.com', password: 'password123')
    ```
 
-### Files Created:
+4. Add to `app/controllers/{namespace}/base_controller.rb`:
+   ```ruby
+   before_action :authenticate_admin_user!
+   ```
+
+{END IF}
+
+---
+
+### 📁 Files Created
+
 - `app/controllers/{namespace}/` - Admin controllers
 - `app/views/{namespace}/` - Admin views
 - `app/views/layouts/{namespace}.html.erb` - Admin layout
@@ -614,10 +853,32 @@ After generation, output these instructions:
 {if tests}- `{spec|test}/controllers/{namespace}/` - Controller tests{/if}
 {if i18n}- `config/locales/{namespace}.{locale}.yml` - Translations{/if}
 
-### Customization:
-- Edit `app/views/{namespace}/shared/_sidebar.html.erb` to customize navigation
-- Modify `app/controllers/{namespace}/base_controller.rb` for global settings
-- Adjust styles in the layout file for your design preferences
+---
+
+### 🚀 Quick Start
+
+1. Install dependencies:
+   ```bash
+   bundle install
+   ```
+
+2. Start server:
+   ```bash
+   rails server
+   ```
+
+3. Open in browser:
+   ```
+   http://localhost:3000/{namespace}
+   ```
+
+---
+
+### 🎨 Customization
+
+- **Navigation:** Edit `app/views/{namespace}/shared/_sidebar.html.erb`
+- **Global settings:** Modify `app/controllers/{namespace}/base_controller.rb`
+- **Styles:** Adjust the layout file for your design preferences
 ```
 
 ---
