@@ -75,6 +75,7 @@ This is a **Claude Code skill** (not a gem or Rails app) that generates full-fea
 │  5. Authentication (Devise?)            │
 │  6. i18n support                        │
 │  7. Test generation                     │
+│  8. Export (CSV/Excel + field picker)   │
 └─────────────────────────────────────────┘
     │
     ▼

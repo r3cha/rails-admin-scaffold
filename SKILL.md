@@ -423,7 +423,82 @@ Create `app/controllers/concerns/{namespace}/`:
 
 **date_range_filterable.rb** - See `templates/concerns/date_range_filterable.rb`
 
-**exportable.rb** - See `templates/features/export_controller.rb` (extract concern)
+**exportable.rb** - Advanced export concern with field selection:
+
+```ruby
+# app/controllers/concerns/{namespace}/exportable.rb
+module {Namespace}
+  module Exportable
+    extend ActiveSupport::Concern
+
+    def export
+      @model_class = controller_name.classify.constantize
+      @exportable_fields = exportable_fields_for(@model_class)
+
+      if request.get?
+        # Show export modal/form with field selection
+        render "#{namespace}/shared/export_modal", locals: {
+          fields: @exportable_fields,
+          record_count: filtered_scope.count,
+          selected_ids: params[:ids]
+        }
+      else
+        # Perform export with selected fields
+        selected_fields = params[:export_fields] || @exportable_fields.keys
+        records = export_scope(params[:ids])
+
+        respond_to do |format|
+          format.csv { send_csv(records, selected_fields) }
+          format.xlsx { send_xlsx(records, selected_fields) }
+        end
+      end
+    end
+
+    private
+
+    def exportable_fields_for(model_class)
+      # Returns hash of field_name => human_label
+      model_class.column_names.each_with_object({}) do |col, hash|
+        next if col.in?(%w[encrypted_password reset_password_token])
+        hash[col] = col.humanize
+      end
+    end
+
+    def export_scope(selected_ids = nil)
+      scope = filtered_scope  # Uses current ransack filters
+      scope = scope.where(id: selected_ids) if selected_ids.present?
+      scope
+    end
+
+    def filtered_scope
+      # Reuse ransack query from index
+      model_class = controller_name.classify.constantize
+      model_class.ransack(params[:q]).result
+    end
+
+    def send_csv(records, fields)
+      csv_data = CSV.generate(headers: true) do |csv|
+        csv << fields.map { |f| f.humanize }
+        records.find_each do |record|
+          csv << fields.map { |f| format_field(record, f) }
+        end
+      end
+      send_data csv_data, filename: "\#{controller_name}-\#{Date.current}.csv"
+    end
+
+    def format_field(record, field)
+      value = record.send(field)
+      case value
+      when Time, DateTime then value.strftime("%Y-%m-%d %H:%M")
+      when Date then value.strftime("%Y-%m-%d")
+      when true then "Yes"
+      when false then "No"
+      else value.to_s
+      end
+    end
+  end
+end
+```
 
 **bulk_actions.rb** - See `templates/features/bulk_actions.rb`
 
@@ -466,6 +541,128 @@ Create `app/views/{namespace}/shared/` partials:
 - `_pagination.html.erb` - Pagination controls
 - `_table_header.html.erb` - Sortable column headers
 - `_bulk_actions.html.erb` - Bulk action dropdown
+- `_export_modal.html.erb` - Export dialog with field selection (if export enabled)
+
+**Export Modal** (`_export_modal.html.erb`):
+
+```erb
+<%# Export modal with field selection %>
+<div id="export-modal" class="{CSS: modal}" data-controller="export-modal">
+  <div class="{CSS: modal-content}">
+    <div class="{CSS: modal-header}">
+      <h3>Export <%= controller_name.humanize %></h3>
+      <button type="button" data-action="export-modal#close">&times;</button>
+    </div>
+
+    <%= form_tag export_path(format: :csv), method: :post, data: { export_modal_target: "form" } do %>
+      <%# Pass current filters %>
+      <% params[:q]&.each do |key, value| %>
+        <%= hidden_field_tag "q[#{key}]", value %>
+      <% end %>
+
+      <%# Pass selected IDs if bulk export %>
+      <% if local_assigns[:selected_ids].present? %>
+        <% selected_ids.each do |id| %>
+          <%= hidden_field_tag "ids[]", id %>
+        <% end %>
+      <% end %>
+
+      <div class="{CSS: modal-body}">
+        <p class="{CSS: text-muted}">
+          Exporting <strong><%= record_count %></strong> records
+          <% if selected_ids.present? %>
+            (<%= selected_ids.size %> selected)
+          <% else %>
+            (filtered)
+          <% end %>
+        </p>
+
+        <div class="{CSS: form-group}">
+          <label class="{CSS: label}">Select fields to export:</label>
+
+          <div class="{CSS: checkbox-group}">
+            <label class="{CSS: checkbox}">
+              <%= check_box_tag "select_all", "1", true, data: { action: "export-modal#toggleAll" } %>
+              <strong>Select All</strong>
+            </label>
+          </div>
+
+          <div class="{CSS: checkbox-grid}" data-export-modal-target="fields">
+            <% fields.each do |field_name, field_label| %>
+              <label class="{CSS: checkbox}">
+                <%= check_box_tag "export_fields[]", field_name, true, data: { export_modal_target: "field" } %>
+                <%= field_label %>
+              </label>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <div class="{CSS: modal-footer}">
+        <button type="button" class="{CSS: btn-secondary}" data-action="export-modal#close">
+          Cancel
+        </button>
+        <button type="submit" name="format" value="csv" class="{CSS: btn-primary}">
+          Export CSV
+        </button>
+        <%# If Excel enabled %>
+        <button type="submit" name="format" value="xlsx" class="{CSS: btn-primary}">
+          Export Excel
+        </button>
+      </div>
+    <% end %>
+  </div>
+</div>
+```
+
+**Export Modal Stimulus Controller** (if has_stimulus):
+
+```javascript
+// app/javascript/controllers/{namespace}/export_modal_controller.js
+import { Controller } from "@hotwired/stimulus"
+
+export default class extends Controller {
+  static targets = ["form", "fields", "field"]
+
+  open(event) {
+    event.preventDefault()
+    // If triggered from bulk actions, collect selected IDs
+    const selectedIds = this.getSelectedIds()
+    if (selectedIds.length > 0) {
+      this.addSelectedIds(selectedIds)
+    }
+    this.element.classList.remove("hidden")
+  }
+
+  close() {
+    this.element.classList.add("hidden")
+  }
+
+  toggleAll(event) {
+    const checked = event.target.checked
+    this.fieldTargets.forEach(field => field.checked = checked)
+  }
+
+  getSelectedIds() {
+    // Get IDs from bulk select checkboxes
+    const checkboxes = document.querySelectorAll('[data-bulk-select-target="checkbox"]:checked')
+    return Array.from(checkboxes).map(cb => cb.value)
+  }
+
+  addSelectedIds(ids) {
+    // Remove existing hidden ID fields
+    this.formTarget.querySelectorAll('input[name="ids[]"]').forEach(el => el.remove())
+    // Add new ones
+    ids.forEach(id => {
+      const input = document.createElement('input')
+      input.type = 'hidden'
+      input.name = 'ids[]'
+      input.value = id
+      this.formTarget.appendChild(input)
+    })
+  }
+}
+```
 
 **IMPORTANT:** Use CSS classes from `css/{css_framework}.md` for all styling.
 
@@ -556,10 +753,32 @@ For each included model, create views in `app/views/{namespace}/{model_plural}/`
 **index.html.erb** - Use `templates/views/index.html.erb`:
 - Filter form with ransack
 - Data table with sortable columns
-- Export buttons
 - Pagination
 - If CRUD: "New" button, bulk action checkboxes, edit/delete links
 - If read-only: only "View" links, no bulk actions
+
+**Export buttons** (if export enabled):
+```erb
+<div class="{CSS: btn-group}">
+  <%# Export filtered records %>
+  <%= link_to "Export", "#",
+      class: "{CSS: btn-secondary}",
+      data: { action: "export-modal#open" } %>
+
+  <%# Export selected records (shown when records selected) %>
+  <span data-bulk-select-target="bulkActions" class="hidden">
+    <%= link_to "Export Selected", "#",
+        class: "{CSS: btn-secondary}",
+        data: { action: "export-modal#open" } %>
+  </span>
+</div>
+
+<%# Include export modal %>
+<%= render "{namespace}/shared/export_modal",
+    fields: exportable_fields_for(@model_class),
+    record_count: @query.result.count,
+    selected_ids: nil %>
+```
 
 **show.html.erb** - Use `templates/views/show.html.erb`:
 - Field display based on type
@@ -625,7 +844,8 @@ namespace :{namespace} do
   # For models with FULL CRUD:
   resources :users do
     collection do
-      get :export
+      get :export      # Show export modal with field selection
+      post :export     # Perform export with selected fields
       delete :bulk_destroy
     end
     member do
@@ -640,12 +860,18 @@ namespace :{namespace} do
   resources :audit_logs, only: [:index, :show] do
     collection do
       get :export
+      post :export
     end
   end
 
   # Repeat for all models...
 end
 ```
+
+**Export route explanation:**
+- `GET /admin/users/export` - Opens modal (if JS disabled, shows export page)
+- `POST /admin/users/export` - Performs export with selected fields, respects current filters
+- `POST /admin/users/export?ids[]=1&ids[]=2` - Exports only selected records
 
 ### 4.10 Create Stimulus Controllers (if has_stimulus)
 
