@@ -67,14 +67,15 @@ This is a **Claude Code skill** (not a gem or Rails app) that generates full-fea
 ┌─────────────────────────────────────────┐
 │  Phase 3: INTERACTIVE QUESTIONS         │
 │  AskUserQuestion for:                   │
-│  1. Namespace (admin / new_admin)       │
+│  1. Namespace (from available options)  │
 │  2. Models to exclude                   │
-│  3. CRUD views (all/select/read-only)   │
-│  4. Fields to hide in tables            │
-│  5. Authentication (Devise?)            │
-│  6. i18n support                        │
-│  7. Test generation                     │
-│  8. Export (CSV/Excel + field picker)   │
+│  3. Model config (smart defaults or     │
+│     configure each: views, table cols,  │
+│     show fields, form fields)           │
+│  4. Authentication (Devise?)            │
+│  5. i18n support                        │
+│  6. Test generation                     │
+│  7. Export (CSV/Excel + field picker)   │
 └─────────────────────────────────────────┘
     │
     ▼

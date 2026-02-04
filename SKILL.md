@@ -436,66 +436,106 @@ If user selects "Other", use their custom namespace.
 
 If "Select specific models", follow up with multiSelect of model names.
 
-### Question 3: CRUD Views
+### Question 3: Model Configuration Mode
 
 ```json
 {
-  "question": "Which models need full CRUD (create/edit/delete) views?",
-  "header": "CRUD",
+  "question": "How do you want to configure fields and views for each model?",
+  "header": "Config",
   "options": [
-    {"label": "All models (Recommended)", "description": "Generate full CRUD for all included models"},
-    {"label": "Select models for CRUD", "description": "I'll choose which models get edit forms"},
-    {"label": "Read-only for all", "description": "Only index and show views, no editing"}
+    {"label": "Smart defaults (Recommended)", "description": "Auto-detect fields, hide sensitive data, full CRUD for all"},
+    {"label": "Configure each model", "description": "I'll specify fields and views for each model individually"}
   ],
   "multiSelect": false
 }
 ```
 
-If "Select models for CRUD", follow up with multiSelect of model names:
+**If "Smart defaults":**
+- All included models get full CRUD (index, show, new, edit, delete)
+- Show all fields except sensitive ones (passwords, tokens, secrets)
+- Auto-generate filters for searchable fields
+- Skip to Question 4 (Authentication)
+
+**If "Configure each model":**
+For each included model, ask the following questions:
+
+#### 3a. Model View Type
 
 ```json
 {
-  "question": "Select models that need create/edit/delete functionality:",
-  "header": "Editable",
+  "question": "What views should {Model} have?",
+  "header": "{Model}",
   "options": [
-    // Dynamically generated from included models list
-    {"label": "User", "description": "Full CRUD for User"},
-    {"label": "Post", "description": "Full CRUD for Post"},
-    // ... etc
+    {"label": "Full CRUD", "description": "Index, show, new, edit, delete"},
+    {"label": "Read-only", "description": "Index and show only, no editing"},
+    {"label": "Skip", "description": "Don't generate admin for this model"}
+  ],
+  "multiSelect": false
+}
+```
+
+#### 3b. Index/Table Columns
+
+```json
+{
+  "question": "Which fields should appear in the {Model} table (index view)?",
+  "header": "Table",
+  "options": [
+    // List all non-sensitive fields, pre-select recommended ones
+    // Pre-select: id, name/title (if exists), key identifiers, status, created_at
+    {"label": "id", "description": "bigint"},
+    {"label": "name", "description": "string ✓"},
+    {"label": "email", "description": "string ✓"},
+    {"label": "status", "description": "enum ✓"},
+    {"label": "created_at", "description": "datetime ✓"},
+    {"label": "bio", "description": "text"},
+    // ... (exclude sensitive fields entirely)
   ],
   "multiSelect": true
 }
 ```
 
-**Note:** If existing admin panel was detected (Section 1.7), inform user:
-
-```
-Detected existing admin panel: {activeadmin|rails_admin|custom}
-
-The following models have custom admin functionality that will be replicated:
-- User: custom actions (impersonate, ban), nested forms (profile)
-- Order: custom filters (by_status, date_range), export
-
-Do you want to include these custom features?
-```
-
-### Question 4: Hidden Fields
+#### 3c. Show Page Fields
 
 ```json
 {
-  "question": "Which fields should be hidden in forms and tables?",
-  "header": "Hidden",
+  "question": "Which fields should appear on the {Model} show page?",
+  "header": "Show",
   "options": [
-    {"label": "Sensitive only (Recommended)", "description": "Hide passwords, tokens, secrets - keep id, timestamps visible"},
-    {"label": "Sensitive + system", "description": "Also hide id, created_at, updated_at"},
-    {"label": "Show all", "description": "Don't hide any fields automatically"},
-    {"label": "Configure per model", "description": "I'll specify hidden fields for each model"}
+    // List all non-sensitive fields, pre-select all by default
+    {"label": "id", "description": "bigint ✓"},
+    {"label": "name", "description": "string ✓"},
+    {"label": "email", "description": "string ✓"},
+    {"label": "bio", "description": "text ✓"},
+    {"label": "created_at", "description": "datetime ✓"},
+    {"label": "updated_at", "description": "datetime ✓"},
+    // ...
   ],
-  "multiSelect": false
+  "multiSelect": true
 }
 ```
 
-**Default hidden fields (Sensitive only):**
+#### 3d. Form Fields (only if Full CRUD selected)
+
+```json
+{
+  "question": "Which fields should be editable in the {Model} form?",
+  "header": "Form",
+  "options": [
+    // List editable fields (exclude id, timestamps, computed fields)
+    // Pre-select all editable fields
+    {"label": "name", "description": "string ✓"},
+    {"label": "email", "description": "string ✓"},
+    {"label": "bio", "description": "text ✓"},
+    {"label": "status", "description": "enum ✓"},
+    {"label": "role", "description": "enum ✓"},
+    // ...
+  ],
+  "multiSelect": true
+}
+```
+
+**Sensitive fields (always excluded from options):**
 ```ruby
 SENSITIVE_FIELDS = %w[
   encrypted_password password_digest password
@@ -506,24 +546,11 @@ SENSITIVE_FIELDS = %w[
 ]
 ```
 
-If "Configure per model", follow up with a question for each model:
+**Note:** If existing admin panel was detected (Section 1.7), show detected custom features and ask if they should be replicated.
 
-```json
-{
-  "question": "Which fields should be hidden for {Model}?",
-  "header": "{Model}",
-  "options": [
-    // List all fields from model, pre-select sensitive ones
-    {"label": "email", "description": "string"},
-    {"label": "encrypted_password", "description": "string (sensitive)"},
-    {"label": "created_at", "description": "datetime"},
-    // ...
-  ],
-  "multiSelect": true
-}
-```
+---
 
-### Question 5: Authentication
+### Question 4: Authentication
 
 ```json
 {
@@ -539,7 +566,7 @@ If "Configure per model", follow up with a question for each model:
 }
 ```
 
-### Question 6: Internationalization
+### Question 5: Internationalization
 
 ```json
 {
@@ -555,7 +582,7 @@ If "Configure per model", follow up with a question for each model:
 }
 ```
 
-### Question 7: Tests
+### Question 6: Tests
 
 ```json
 {
@@ -569,7 +596,7 @@ If "Configure per model", follow up with a question for each model:
 }
 ```
 
-### Question 8: Export
+### Question 7: Export
 
 ```json
 {
