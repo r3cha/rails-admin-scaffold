@@ -45,11 +45,10 @@ This is a **Claude Code skill** (not a gem or Rails app) that generates full-fea
     ▼
 ┌─────────────────────────────────────────┐
 │  Phase 1: DETECTION                     │
-│  - Check app/controllers/admin/         │
+│  - Detect existing admin dashboards     │
+│    and their paths (routes.rb, dirs)    │
 │  - Detect CSS framework                 │
 │  - Detect pagination gem                │
-│  - Detect existing admin (ActiveAdmin,  │
-│    RailsAdmin, custom)                  │
 │  - Collect list of models               │
 └─────────────────────────────────────────┘
     │
@@ -126,10 +125,19 @@ This is a **Claude Code skill** (not a gem or Rails app) that generates full-fea
 - Scan `app/models/*.rb`
 - Filter out: `application_record.rb`, `concerns/`, abstract classes
 
-**Existing admin detection:**
+**Existing admin dashboard detection:**
+Scan `config/routes.rb` to find existing admin dashboards and their paths:
+- `mount RailsAdmin::Engine => '/path'` → extract actual mount path
+- `ActiveAdmin.routes` + `config/initializers/active_admin.rb` → extract namespace
+- `namespace :admin` blocks → extract namespace
+- `app/controllers/{namespace}/` directories → extract namespace
+
+Store as `taken_namespaces` array, then suggest only available namespaces in Question 1.
+
+**Existing admin feature detection:**
 - Check Gemfile for `activeadmin`, `rails_admin`, `administrate`
 - If found, analyze existing admin configs to replicate custom features
-- If custom admin exists (`app/controllers/admin/`), extract custom actions, filters, nested forms
+- If custom admin exists, extract custom actions, filters, nested forms
 
 ### Phase 2: Model Analysis
 

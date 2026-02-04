@@ -23,16 +23,53 @@ This skill creates a fully functional admin interface by:
 
 Before asking any questions, automatically detect the project configuration.
 
-### 1.1 Check for Existing Admin
+### 1.1 Detect Existing Admin Dashboards
 
-```bash
-# Check if admin namespace already exists
-ls app/controllers/admin/ 2>/dev/null
+Scan for existing admin implementations and identify which paths/namespaces they use.
+
+**Read `config/routes.rb` and extract:**
+
+```ruby
+# 1. Rails Admin - extract mount path
+# mount RailsAdmin::Engine => '/admin', as: 'rails_admin'
+# mount RailsAdmin::Engine, at: '/backend'
+# → Extract path: "/admin" or "/backend" etc.
+
+# 2. ActiveAdmin - extract namespace from config or routes
+# ActiveAdmin.routes(self)  → default namespace is "admin"
+# Also check config/initializers/active_admin.rb for:
+#   config.default_namespace = :backend
+# → Extract namespace: "admin" or custom
+
+# 3. Administrate - check for namespace block
+# namespace :admin do
+#   resources :users, controller: "users"
+# → Usually uses "admin" namespace
+
+# 4. Custom admin - check for namespace blocks
+# namespace :admin do ... end
+# namespace :backend do ... end
+# → Extract all admin-like namespaces
+
+# 5. Check controller directories
+# app/controllers/admin/ → "admin"
+# app/controllers/backend/ → "backend"
 ```
 
-If `app/controllers/admin/` exists:
-- Note that admin namespace is taken
-- Will suggest `new_admin` or custom namespace in Phase 3
+**Store results as:**
+```ruby
+existing_admins = [
+  { type: "rails_admin", path: "/admin" },
+  { type: "activeadmin", path: "/backend" },
+  { type: "custom", path: "/management" }
+]
+
+# List of taken namespaces (for Question 1)
+taken_namespaces = ["admin", "backend", "management"]
+```
+
+**Common namespace options to check:**
+- `admin`, `backend`, `dashboard`, `management`, `panel`, `console`, `staff`
 
 ### 1.2 Detect CSS Framework
 
@@ -325,19 +362,59 @@ Use the AskUserQuestion tool with these questions:
 
 ### Question 1: Namespace
 
+Build the question dynamically based on detected existing admins:
+
+**If existing admin dashboards were detected:**
+
+First, inform the user what was found:
+```
+Detected existing admin dashboard(s):
+- Rails Admin at /admin
+- Custom admin at /backend
+```
+
+Then ask with only available (non-conflicting) options:
+
+```json
+{
+  "question": "Which namespace should the new admin panel use?",
+  "header": "Namespace",
+  "options": [
+    // Only include namespaces NOT in taken_namespaces
+    // First available option from this priority list gets "(Recommended)":
+    // 1. "admin" (if available)
+    // 2. "backend" (if available)
+    // 3. "dashboard" (if available)
+    // 4. "management" (if available)
+    // 5. "panel" (if available)
+
+    // Example if "admin" and "backend" are taken:
+    {"label": "dashboard (Recommended)", "description": "Use /dashboard path"},
+    {"label": "management", "description": "Use /management path"},
+    {"label": "panel", "description": "Use /panel path"}
+  ],
+  "multiSelect": false
+}
+```
+
+**If no existing admin dashboards detected:**
+
 ```json
 {
   "question": "What namespace should the admin panel use?",
   "header": "Namespace",
   "options": [
-    {"label": "admin", "description": "Standard /admin path (Recommended if not taken)"},
-    {"label": "new_admin", "description": "Use /new_admin if /admin exists"},
+    {"label": "admin (Recommended)", "description": "Standard /admin path"},
     {"label": "backend", "description": "Alternative /backend path"},
-    {"label": "dashboard", "description": "Use /dashboard path"}
+    {"label": "dashboard", "description": "Use /dashboard path"},
+    {"label": "management", "description": "Use /management path"}
   ],
   "multiSelect": false
 }
 ```
+
+**Available namespace pool (in priority order):**
+`admin`, `backend`, `dashboard`, `management`, `panel`, `console`, `staff`
 
 If user selects "Other", use their custom namespace.
 
