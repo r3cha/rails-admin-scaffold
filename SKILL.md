@@ -486,12 +486,40 @@ Do you want to include these custom features?
   "question": "Which fields should be hidden in forms and tables?",
   "header": "Hidden",
   "options": [
-    {"label": "Standard (Recommended)", "description": "Hide id, created_at, updated_at, encrypted fields"},
-    {"label": "Minimal", "description": "Only hide id and encrypted_password"},
+    {"label": "Sensitive only (Recommended)", "description": "Hide passwords, tokens, secrets - keep id, timestamps visible"},
+    {"label": "Sensitive + system", "description": "Also hide id, created_at, updated_at"},
     {"label": "Show all", "description": "Don't hide any fields automatically"},
-    {"label": "Extended", "description": "Also hide tokens, confirmation fields, IP addresses"}
+    {"label": "Configure per model", "description": "I'll specify hidden fields for each model"}
   ],
   "multiSelect": false
+}
+```
+
+**Default hidden fields (Sensitive only):**
+```ruby
+SENSITIVE_FIELDS = %w[
+  encrypted_password password_digest password
+  reset_password_token confirmation_token unlock_token
+  api_token access_token refresh_token auth_token secret_token
+  otp_secret encrypted_otp_secret
+  secret_key api_key private_key
+]
+```
+
+If "Configure per model", follow up with a question for each model:
+
+```json
+{
+  "question": "Which fields should be hidden for {Model}?",
+  "header": "{Model}",
+  "options": [
+    // List all fields from model, pre-select sensitive ones
+    {"label": "email", "description": "string"},
+    {"label": "encrypted_password", "description": "string (sensitive)"},
+    {"label": "created_at", "description": "datetime"},
+    // ...
+  ],
+  "multiSelect": true
 }
 ```
 
