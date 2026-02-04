@@ -19,46 +19,85 @@ A Claude Code skill that generates a full-featured admin panel for Rails 6.1+ ap
 
 ## Installation
 
-### Global Installation
-
-Add the skill to your Claude Code settings for use in any project:
+### Via claude-plugins.dev (Easiest)
 
 ```bash
-# Create skills directory if it doesn't exist
+npx claude-plugins install @r3cha/rails-admin-scaffold
+```
+
+### Quick Install (Recommended)
+
+**Global** — use in all your projects:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/r3cha/rails-admin-scaffold/main/install.sh | bash
+```
+
+**Local** — install in current project only:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/r3cha/rails-admin-scaffold/main/install.sh | bash -s -- --local
+```
+
+### Manual Installation
+
+<details>
+<summary>Global (all projects)</summary>
+
+```bash
 mkdir -p ~/.claude/skills
-
-# Clone the repository
-git clone https://github.com/r3cha/rails-admin-scaffold ~/.claude/skills/rails-admin-scaffold
+git clone https://github.com/r3cha/rails-admin-scaffold.git ~/.claude/skills/rails-admin-scaffold
 ```
 
-Then add to your Claude Code settings (`~/.claude/settings.json`):
+Add to `~/.claude/settings.json`:
 
 ```json
 {
-  "skills": [
-    "~/.claude/skills/rails-admin-scaffold/SKILL.md"
-  ]
+  "skills": ["~/.claude/skills/rails-admin-scaffold/SKILL.md"]
 }
 ```
 
-### Per-Project Installation
+</details>
 
-Add the skill directly to your Rails project:
+<details>
+<summary>Per-project</summary>
 
 ```bash
-# In your Rails project root
 mkdir -p .claude/skills
-git clone https://github.com/r3cha/rails-admin-scaffold .claude/skills/rails-admin-scaffold
+git clone https://github.com/r3cha/rails-admin-scaffold.git .claude/skills/rails-admin-scaffold
+echo ".claude/skills/" >> .gitignore
 ```
 
-Then add to your project's `.claude/settings.json`:
+Add to `.claude/settings.json`:
 
 ```json
 {
-  "skills": [
-    ".claude/skills/rails-admin-scaffold/SKILL.md"
-  ]
+  "skills": [".claude/skills/rails-admin-scaffold/SKILL.md"]
 }
+```
+
+</details>
+
+<details>
+<summary>Git submodule (share with team)</summary>
+
+```bash
+mkdir -p .claude/skills
+git submodule add https://github.com/r3cha/rails-admin-scaffold.git .claude/skills/rails-admin-scaffold
+```
+
+Team members: `git submodule update --init --recursive`
+
+</details>
+
+### Update
+
+```bash
+# Global
+cd ~/.claude/skills/rails-admin-scaffold && git pull
+
+# Local
+cd .claude/skills/rails-admin-scaffold && git pull
 ```
 
 ## Usage

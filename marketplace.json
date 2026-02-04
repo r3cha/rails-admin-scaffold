@@ -1,0 +1,49 @@
+{
+  "$schema": "https://claude-plugins.dev/schema.json",
+  "name": "rails-admin-scaffold",
+  "namespace": "@r3cha/rails-admin-scaffold",
+  "gitUrl": "https://github.com/r3cha/rails-admin-scaffold.git",
+  "description": "Generate full-featured CRUD admin panels for Rails 6.1+ applications with auto-detection of CSS frameworks, pagination, and models",
+  "version": "1.0.0",
+  "category": "rails",
+  "skills": ["rails-admin-scaffold"],
+  "keywords": [
+    "rails",
+    "admin",
+    "scaffold",
+    "crud",
+    "activeadmin",
+    "tailwind",
+    "bootstrap",
+    "bulma",
+    "ransack",
+    "pagy",
+    "devise"
+  ],
+  "author": {
+    "name": "r3cha",
+    "url": "https://github.com/r3cha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/r3cha/rails-admin-scaffold"
+  },
+  "license": "MIT",
+  "metadata": {
+    "railsVersion": "6.1+",
+    "rubyVersion": "3.0+",
+    "cssFrameworks": ["tailwind", "bootstrap", "bulma"],
+    "features": [
+      "auto-detection",
+      "model-analysis",
+      "ransack-search",
+      "pagination",
+      "csv-export",
+      "excel-export",
+      "bulk-actions",
+      "soft-delete",
+      "devise-auth",
+      "i18n"
+    ]
+  }
+}
