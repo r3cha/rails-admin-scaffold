@@ -19,11 +19,11 @@ A Claude Code skill that generates a full-featured admin panel for Rails 6.1+ ap
 
 ## Installation
 
-### Via claude-plugins.dev (Easiest)
+<!--### Via claude-plugins.dev (Easiest)
 
 ```bash
 npx claude-plugins install @r3cha/rails-admin-scaffold
-```
+```-->
 
 ### Quick Install (Recommended)
 
