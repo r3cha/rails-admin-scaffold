@@ -59,10 +59,10 @@ Read `Gemfile`:
 
 ```ruby
 # Look for:
-gem 'pagy'           # → pagination_gem = "pagy"
+gem 'pagy'           # → pagination_gem = "pagy" (recommended, ~40x faster)
 gem 'kaminari'       # → pagination_gem = "kaminari"
 gem 'will_paginate'  # → pagination_gem = "will_paginate"
-# None found         # → pagination_gem = "pagy" (default, will add to Gemfile)
+# None found         # → pagination_gem = "pagy" (default, fastest option)
 ```
 
 ### 1.4 Detect Test Framework
@@ -82,7 +82,90 @@ gem 'will_paginate'  # → pagination_gem = "will_paginate"
 # Otherwise → has_stimulus = false
 ```
 
-### 1.6 Discover Models
+### 1.6 Detect File Uploader
+
+Check Gemfile and model files for file upload solution:
+
+```ruby
+# Check Gemfile:
+gem 'activestorage'    # → file_uploader = "activestorage" (Rails 5.2+ built-in)
+gem 'carrierwave'      # → file_uploader = "carrierwave"
+gem 'shrine'           # → file_uploader = "shrine"
+gem 'paperclip'        # → file_uploader = "paperclip" (deprecated)
+gem 'dragonfly'        # → file_uploader = "dragonfly"
+
+# Also check model files for:
+has_one_attached       # → Active Storage
+has_many_attached      # → Active Storage
+mount_uploader         # → CarrierWave
+include ImageUploader  # → Shrine
+has_attached_file      # → Paperclip
+dragonfly_accessor     # → Dragonfly
+```
+
+**Preview syntax by uploader:**
+
+```erb
+<%# Active Storage %>
+<%% if record.avatar.attached? %>
+  <%%= image_tag record.avatar.variant(resize_to_limit: [100, 100]) %>
+<%% end %>
+
+<%# CarrierWave %>
+<%% if record.avatar.present? %>
+  <%%= image_tag record.avatar.thumb.url %>
+<%% end %>
+
+<%# Shrine %>
+<%% if record.avatar_data.present? %>
+  <%%= image_tag record.avatar_url(:thumb) %>
+<%% end %>
+
+<%# Paperclip (legacy) %>
+<%% if record.avatar.present? %>
+  <%%= image_tag record.avatar.url(:thumb) %>
+<%% end %>
+
+<%# Dragonfly %>
+<%% if record.avatar_stored? %>
+  <%%= image_tag record.avatar.thumb('100x100#').url %>
+<%% end %>
+```
+
+**Form input syntax by uploader:**
+
+```erb
+<%# Active Storage %>
+<%%= form.file_field :avatar, accept: "image/*", class: "{CSS: file-input}" %>
+<%% if record.avatar.attached? %>
+  <div class="{CSS: file-preview}">
+    <%%= image_tag record.avatar.variant(resize_to_limit: [200, 200]) %>
+    <%%= form.check_box :remove_avatar, label: "Remove" %>
+  </div>
+<%% end %>
+
+<%# CarrierWave %>
+<%%= form.file_field :avatar, class: "{CSS: file-input}" %>
+<%% if record.avatar.present? %>
+  <div class="{CSS: file-preview}">
+    <%%= image_tag record.avatar.thumb.url %>
+    <%%= form.check_box :remove_avatar %>
+  </div>
+<%% end %>
+
+<%# Shrine %>
+<%%= form.hidden_field :avatar, value: record.cached_avatar_data %>
+<%%= form.file_field :avatar, class: "{CSS: file-input}" %>
+
+<%# Paperclip %>
+<%%= form.file_field :avatar, class: "{CSS: file-input}" %>
+
+<%# Dragonfly %>
+<%%= form.file_field :avatar, class: "{CSS: file-input}" %>
+<%%= form.hidden_field :retained_avatar %>
+```
+
+### 1.7 Discover Models
 
 ```bash
 # List all model files

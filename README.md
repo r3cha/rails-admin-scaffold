@@ -7,12 +7,12 @@ A Claude Code skill that generates a full-featured admin panel for Rails 6.1+ ap
 - **Auto-Detection**: Automatically detects your CSS framework, pagination gem, and test framework
 - **Smart Model Analysis**: Analyzes models for fields, associations, enums, and attachments
 - **Multiple CSS Frameworks**: Supports Tailwind CSS, Bootstrap 5, and Bulma
-- **Pagination Options**: Works with Pagy, Kaminari, or will_paginate
+- **Pagination Options**: Works with Pagy (recommended, fastest), Kaminari, or will_paginate
 - **Search & Filtering**: Ransack-powered search with date range filters
 - **Export**: CSV and Excel export for all resources
 - **Bulk Actions**: Select multiple records for bulk operations
 - **Soft Delete Support**: Compatible with Paranoia and Discard gems
-- **Active Storage**: Image previews and file attachments
+- **File Uploads**: Image previews for Active Storage, CarrierWave, Shrine, Paperclip, Dragonfly
 - **Authentication Options**: Devise AdminUser, existing User model, or HTTP Basic Auth
 - **Optional Tests**: Generate RSpec or Minitest controller tests
 - **i18n Support**: Optional internationalization with multiple languages
@@ -254,7 +254,7 @@ These gems are added automatically if not present:
 
 ```ruby
 gem 'ransack', '~> 4.0'  # Search and filtering
-gem 'pagy', '~> 6.0'     # Pagination (default)
+gem 'pagy', '~> 6.0'     # Pagination (recommended, ~40x faster than alternatives)
 gem 'caxlsx', '~> 4.0'   # Excel export
 gem 'caxlsx_rails'       # Excel export Rails integration
 ```

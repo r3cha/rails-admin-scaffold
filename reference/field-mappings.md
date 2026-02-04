@@ -27,7 +27,7 @@ This document defines how database column types map to form inputs and table dis
 | `enum` (DB) | `select` | badge | `select` + `_eq` | PostgreSQL enum |
 | `point` | 2x `number_field` | coordinates | N/A | Geographic point |
 | `references` | `collection_select` | `link_to` associated | `select` + `_eq` | Foreign key |
-| `attachment` | `file_field` | thumbnail/link | N/A | Active Storage |
+| `attachment` | `file_field` | thumbnail/link | N/A | Active Storage, CarrierWave, Shrine, Paperclip, Dragonfly |
 
 ## Form Input Details
 
@@ -172,10 +172,15 @@ Or with checkboxes:
 <% end %>
 ```
 
-### File Fields (Active Storage)
+### File Fields
 
-Single attachment:
+File upload syntax varies by gem. Detect and use the appropriate syntax.
+
+#### Active Storage (Rails 5.2+)
+
 ```erb
+<%# Form %>
+<%= f.file_field :avatar, class: "file-input", accept: "image/*" %>
 <% if @record.avatar.attached? %>
   <div class="attachment-preview">
     <% if @record.avatar.image? %>
@@ -183,27 +188,65 @@ Single attachment:
     <% else %>
       Current: <%= @record.avatar.filename %>
     <% end %>
-    <label class="checkbox-wrapper">
-      <%= f.check_box :remove_avatar, {}, "1", "0" %>
-      <span>Remove file</span>
-    </label>
+    <%= f.check_box :remove_avatar, {}, "1", "0" %> Remove
   </div>
 <% end %>
-<%= f.file_field :avatar, class: "file-input", accept: "image/*" %>
+
+<%# Multiple %>
+<%= f.file_field :images, multiple: true, class: "file-input" %>
 ```
 
-Multiple attachments:
+#### CarrierWave
+
 ```erb
-<% if @record.images.attached? %>
-  <div class="attachment-grid">
-    <% @record.images.each do |image| %>
-      <div class="attachment-item">
-        <%= image_tag image.variant(resize_to_limit: [80, 80]) %>
-      </div>
-    <% end %>
+<%# Form %>
+<%= f.file_field :avatar, class: "file-input" %>
+<% if @record.avatar.present? %>
+  <div class="attachment-preview">
+    <%= image_tag @record.avatar.thumb.url %>
+    <%= f.check_box :remove_avatar %> Remove
   </div>
 <% end %>
-<%= f.file_field :images, multiple: true, class: "file-input", accept: "image/*" %>
+<%= f.hidden_field :avatar_cache %>
+```
+
+#### Shrine
+
+```erb
+<%# Form %>
+<%= f.hidden_field :avatar, value: @record.cached_avatar_data, id: "avatar-cache" %>
+<%= f.file_field :avatar, class: "file-input" %>
+<% if @record.avatar_data.present? %>
+  <div class="attachment-preview">
+    <%= image_tag @record.avatar_url(:thumb) %>
+  </div>
+<% end %>
+```
+
+#### Paperclip (deprecated)
+
+```erb
+<%# Form %>
+<%= f.file_field :avatar, class: "file-input" %>
+<% if @record.avatar.present? %>
+  <div class="attachment-preview">
+    <%= image_tag @record.avatar.url(:thumb) %>
+  </div>
+<% end %>
+```
+
+#### Dragonfly
+
+```erb
+<%# Form %>
+<%= f.file_field :avatar, class: "file-input" %>
+<%= f.hidden_field :retained_avatar %>
+<% if @record.avatar_stored? %>
+  <div class="attachment-preview">
+    <%= image_tag @record.avatar.thumb('100x100#').url %>
+    <%= f.check_box :remove_avatar %> Remove
+  </div>
+<% end %>
 ```
 
 ## Table Display Details
@@ -334,9 +377,10 @@ has_many (count badge):
 </span>
 ```
 
-### Attachments
+### Attachments (Table Display)
 
-Single image:
+#### Active Storage
+
 ```erb
 <% if record.avatar.attached? && record.avatar.image? %>
   <%= image_tag record.avatar.variant(resize_to_limit: [40, 40]), class: "img-thumbnail-sm" %>
@@ -347,12 +391,57 @@ Single image:
 <% end %>
 ```
 
-Multiple (count):
+#### CarrierWave
+
 ```erb
-<% if record.images.attached? %>
-  <span class="badge badge-info"><%= record.images.count %> images</span>
+<% if record.avatar.present? %>
+  <%= image_tag record.avatar.thumb.url, class: "img-thumbnail-sm" %>
 <% else %>
   <span class="text-muted">-</span>
+<% end %>
+```
+
+#### Shrine
+
+```erb
+<% if record.avatar_data.present? %>
+  <%= image_tag record.avatar_url(:thumb), class: "img-thumbnail-sm" %>
+<% else %>
+  <span class="text-muted">-</span>
+<% end %>
+```
+
+#### Paperclip
+
+```erb
+<% if record.avatar.present? %>
+  <%= image_tag record.avatar.url(:thumb), class: "img-thumbnail-sm" %>
+<% else %>
+  <span class="text-muted">-</span>
+<% end %>
+```
+
+#### Dragonfly
+
+```erb
+<% if record.avatar_stored? %>
+  <%= image_tag record.avatar.thumb('40x40#').url, class: "img-thumbnail-sm" %>
+<% else %>
+  <span class="text-muted">-</span>
+<% end %>
+```
+
+#### Multiple (count badge)
+
+```erb
+<%# Active Storage %>
+<% if record.images.attached? %>
+  <span class="badge badge-info"><%= record.images.count %> images</span>
+<% end %>
+
+<%# CarrierWave (with multiple: true) %>
+<% if record.images.any? %>
+  <span class="badge badge-info"><%= record.images.count %> images</span>
 <% end %>
 ```
 

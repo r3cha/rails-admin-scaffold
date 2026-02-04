@@ -115,6 +115,13 @@ This is a **Claude Code skill** (not a gem or Rails app) that generates full-fea
 - `will_paginate` → will_paginate
 - None → add Pagy
 
+**File uploader detection:**
+- `has_one_attached` / `has_many_attached` → Active Storage
+- `mount_uploader` → CarrierWave
+- `include *Uploader` → Shrine
+- `has_attached_file` → Paperclip
+- `dragonfly_accessor` → Dragonfly
+
 **Models discovery:**
 - Scan `app/models/*.rb`
 - Filter out: `application_record.rb`, `concerns/`, abstract classes
