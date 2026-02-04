@@ -122,9 +122,14 @@ This is a **Claude Code skill** (not a gem or Rails app) that generates full-fea
 - `has_attached_file` → Paperclip
 - `dragonfly_accessor` → Dragonfly
 
-**Models discovery:**
+**Models discovery and categorization:**
 - Scan `app/models/*.rb`
-- Filter out: `application_record.rb`, `concerns/`, abstract classes
+- Categorize into: primary, technical, join tables, empty, nested
+- Technical: ApplicationRecord, abstract classes, concerns
+- Join tables: models with only foreign key columns (for has_many :through)
+- Empty: models with 0 records (internal registries)
+- Nested: child models managed via parent (CandidatePhone → Candidate)
+- Primary: everything else (recommended for admin)
 
 **Existing admin dashboard detection:**
 Scan `config/routes.rb` to find existing admin dashboards and their paths:

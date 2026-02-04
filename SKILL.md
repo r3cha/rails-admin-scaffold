@@ -420,21 +420,97 @@ If user selects "Other", use their custom namespace.
 
 ### Question 2: Models to Exclude
 
+Before asking, analyze models and categorize them:
+
+```ruby
+# Auto-detect model categories:
+
+# 1. Technical models (always exclude)
+technical_models = [
+  # Abstract/base classes
+  "ApplicationRecord",
+  # Models matching patterns: *Record, *Base, Abstract*
+]
+
+# 2. Join table models (likely exclude)
+# Models with only foreign keys + timestamps, used for has_many :through
+join_models = models.select do |m|
+  columns = m.column_names - %w[id created_at updated_at]
+  columns.all? { |c| c.ends_with?('_id') }
+end
+
+# 3. Empty tables (likely exclude)
+# Models with 0 records - often internal registries, configs
+empty_models = models.select { |m| m.count == 0 }
+
+# 4. Nested/child models (suggest exclude, manage via parent)
+# Naming patterns: Parent* (CandidateEmailAddress, UserPhone, etc.)
+# Models that only belong_to one parent and have no independent meaning
+nested_models = models.select do |m|
+  # Has belongs_to and name starts with parent model name
+  # e.g., CandidatePhone belongs_to :candidate
+end
+
+# 5. Primary models (include by default)
+primary_models = models - technical_models - join_models - empty_models - nested_models
+```
+
+**Build dynamic options based on detection:**
+
 ```json
 {
   "question": "Which models should be EXCLUDED from the admin panel?",
   "header": "Exclude",
   "options": [
-    {"label": "None - include all", "description": "Generate admin for all models"},
-    {"label": "ApplicationRecord only", "description": "Exclude base class only"},
-    {"label": "Session/Token models", "description": "Exclude ActiveSession, ApiToken, etc."},
-    {"label": "Select specific models", "description": "I'll specify which to exclude"}
+    {
+      "label": "Smart exclude (Recommended)",
+      "description": "Include {N} primary models, exclude {M} technical/join/empty models"
+    },
+    {
+      "label": "Include all {total} models",
+      "description": "Generate admin for every model including join tables"
+    },
+    {
+      "label": "Select specific models",
+      "description": "I'll review and choose which to exclude"
+    }
   ],
   "multiSelect": false
 }
 ```
 
-If "Select specific models", follow up with multiSelect of model names.
+**If "Smart exclude" selected, show summary:**
+```
+Including {N} primary models:
+  User, Post, Comment, Order, Product, ...
+
+Excluding {M} models:
+  Technical: ApplicationRecord
+  Join tables: PostTag, UserRole
+  Empty tables: LiquidTemplate, FeatureFlag
+  Nested (manage via parent): CandidateEmail, CandidatePhone, UserAddress
+
+You can manage nested models through their parent's edit form with nested attributes.
+```
+
+**If "Select specific models"**, show multiSelect with categories:
+```json
+{
+  "question": "Select models to EXCLUDE from admin:",
+  "header": "Exclude",
+  "options": [
+    // Group by category, pre-select recommended exclusions
+    {"label": "ApplicationRecord", "description": "technical ✓"},
+    {"label": "PostTag", "description": "join table ✓"},
+    {"label": "LiquidTemplate", "description": "empty (0 records) ✓"},
+    {"label": "CandidatePhone", "description": "nested → Candidate ✓"},
+    {"label": "User", "description": "primary (1,234 records)"},
+    {"label": "Post", "description": "primary (567 records)"},
+    // ...
+  ],
+  "multiSelect": true
+}
+```
 
 ### Question 3: Model Configuration Mode
 
