@@ -2,6 +2,69 @@
 
 This document contains proven patterns for admin panel functionality.
 
+## CRITICAL: Params in URL Helpers (Rails 7.1+)
+
+Two different objects, two different rules:
+- `params[:q]` → `ActionController::Parameters` → call `.to_unsafe_h` before passing to URL helpers
+- `request.params` → `HashWithIndifferentAccess` → use directly, do NOT call `.to_unsafe_h`
+
+```ruby
+# CORRECT
+link_to "Export", resource_path(format: :csv, q: params[:q]&.to_unsafe_h)
+link_to title, request.params.merge("q" => (params[:q]&.to_unsafe_h || {}).merge("s" => "name asc"))
+```
+
+### Sortable Table Header Helper
+
+```ruby
+def sortable_header(column, title = nil)
+  title ||= column.humanize
+  direction = params.dig(:q, :s) == "#{column} asc" ? "desc" : "asc"
+  query_params = params[:q]&.to_unsafe_h || {}
+  link_to title, request.params.merge("q" => query_params.merge("s" => "#{column} #{direction}")),
+          class: "text-decoration-none text-reset"
+end
+```
+
+## Badge Text Visibility (Bootstrap 5 / Tabler)
+
+Bootstrap 5 `bg-*` classes do NOT automatically set text color. Always add explicit text color:
+- `bg-success text-white`, `bg-danger text-white`, `bg-primary text-white`, `bg-secondary text-white`
+- `bg-warning text-dark` (yellow background needs dark text)
+
+```ruby
+def admin_badge_class(value)
+  case value.to_s.downcase
+  when "active", "published", "verified", "qualified", "open", "yes", "true"
+    "bg-success text-white"
+  when "inactive", "draft", "unverified", "closed", "no", "false"
+    "bg-secondary text-white"
+  when "archived", "rejected", "disqualified", "reserved"
+    "bg-warning text-dark"
+  when "deleted", "banned", "blocked"
+    "bg-danger text-white"
+  else
+    "bg-primary text-white"
+  end
+end
+
+# Boolean badges also need text-white:
+tag.span(value ? "Yes" : "No",
+         class: "badge #{value ? 'bg-success text-white' : 'bg-secondary text-white'}")
+```
+
+## File Download Forms (Rails 7 + Turbo)
+
+Forms that trigger file downloads (CSV export, PDF, etc.) must disable Turbo, otherwise the browser won't handle the `send_data` response as a download:
+
+```erb
+<%= form_tag export_path, method: :post, data: { turbo: false } do %>
+  ...
+<% end %>
+```
+
+Without `data: { turbo: false }`, Turbo intercepts the POST and tries to process the response as a Turbo Stream, silently swallowing the file.
+
 ## Ransack Query Patterns
 
 ### Basic Search Configuration

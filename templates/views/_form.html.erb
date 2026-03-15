@@ -8,16 +8,17 @@
 #   {FORM_FIELDS} - Array of fields [{name: "email", type: "string", required: true}, ...]
 #   {ASSOCIATIONS} - Array of belongs_to associations for selects
 #
-# CSS classes use {CSS_FRAMEWORK} placeholders.
+# Replace all CSS classes below with appropriate classes for the detected framework.
+# Class names shown are semantic hints only.
 %>
 
-<%%= form_with model: [{namespace}, {model}], class: "{CSS: form}" do |f| %>
+<%%= form_with model: [{namespace}, {model}], class: "form" do |f| %>
 
   <%# Error Messages %>
   <%% if {model}.errors.any? %>
-    <div class="{CSS: alert-danger} {CSS: mb-4}">
-      <h4 class="{CSS: alert-title}"><%%= pluralize({model}.errors.count, "error") %> prohibited this {model} from being saved:</h4>
-      <ul class="{CSS: error-list}">
+    <div class="alert-danger mb-4">
+      <h4 class="alert-title"><%%= pluralize({model}.errors.count, "error") %> prohibited this {model} from being saved:</h4>
+      <ul class="error-list">
         <%% {model}.errors.full_messages.each do |message| %>
           <li><%%= message %></li>
         <%% end %>
@@ -25,7 +26,7 @@
     </div>
   <%% end %>
 
-  <div class="{CSS: form-grid}">
+  <div class="form-grid">
     <%#
     # FORM FIELD PATTERNS:
     # Replace this section with actual fields based on model schema.
@@ -33,142 +34,142 @@
     %>
 
     <%# String Field %>
-    <%# <div class="{CSS: form-group}">
-      <%%= f.label :name, class: "{CSS: label}" %>
-      <%%= f.text_field :name, class: "{CSS: input}", required: true %>
+    <%# <div class="form-group">
+      <%%= f.label :name, class: "label" %>
+      <%%= f.text_field :name, class: "input", required: true %>
     </div> %>
 
     <%# Email Field %>
-    <%# <div class="{CSS: form-group}">
-      <%%= f.label :email, class: "{CSS: label}" %>
-      <%%= f.email_field :email, class: "{CSS: input}", required: true %>
+    <%# <div class="form-group">
+      <%%= f.label :email, class: "label" %>
+      <%%= f.email_field :email, class: "input", required: true %>
     </div> %>
 
     <%# Password Field (only for new records or explicit change) %>
     <%# <% unless {model}.persisted? %>
-      <div class="{CSS: form-group}">
-        <%%= f.label :password, class: "{CSS: label}" %>
-        <%%= f.password_field :password, class: "{CSS: input}", required: {model}.new_record? %>
+      <div class="form-group">
+        <%%= f.label :password, class: "label" %>
+        <%%= f.password_field :password, class: "input", required: {model}.new_record? %>
       </div>
     <% end %> %>
 
     <%# Text Area %>
-    <%# <div class="{CSS: form-group} {CSS: form-group-full}">
-      <%%= f.label :description, class: "{CSS: label}" %>
-      <%%= f.text_area :description, class: "{CSS: textarea}", rows: 5 %>
+    <%# <div class="form-group form-group-full">
+      <%%= f.label :description, class: "label" %>
+      <%%= f.text_area :description, class: "textarea", rows: 5 %>
     </div> %>
 
     <%# Integer Field %>
-    <%# <div class="{CSS: form-group}">
-      <%%= f.label :quantity, class: "{CSS: label}" %>
-      <%%= f.number_field :quantity, class: "{CSS: input}", min: 0 %>
+    <%# <div class="form-group">
+      <%%= f.label :quantity, class: "label" %>
+      <%%= f.number_field :quantity, class: "input", min: 0 %>
     </div> %>
 
     <%# Decimal/Float Field %>
-    <%# <div class="{CSS: form-group}">
-      <%%= f.label :price, class: "{CSS: label}" %>
-      <%%= f.number_field :price, class: "{CSS: input}", step: 0.01, min: 0 %>
+    <%# <div class="form-group">
+      <%%= f.label :price, class: "label" %>
+      <%%= f.number_field :price, class: "input", step: 0.01, min: 0 %>
     </div> %>
 
     <%# Boolean Field (Checkbox) %>
-    <%# <div class="{CSS: form-group}">
-      <div class="{CSS: checkbox-wrapper}">
-        <%%= f.check_box :active, class: "{CSS: checkbox}" %>
-        <%%= f.label :active, class: "{CSS: checkbox-label}" %>
+    <%# <div class="form-group">
+      <div class="checkbox-wrapper">
+        <%%= f.check_box :active, class: "checkbox" %>
+        <%%= f.label :active, class: "checkbox-label" %>
       </div>
     </div> %>
 
     <%# Date Field %>
-    <%# <div class="{CSS: form-group}">
-      <%%= f.label :published_on, class: "{CSS: label}" %>
-      <%%= f.date_field :published_on, class: "{CSS: input}" %>
+    <%# <div class="form-group">
+      <%%= f.label :published_on, class: "label" %>
+      <%%= f.date_field :published_on, class: "input" %>
     </div> %>
 
     <%# DateTime Field %>
-    <%# <div class="{CSS: form-group}">
-      <%%= f.label :scheduled_at, class: "{CSS: label}" %>
-      <%%= f.datetime_local_field :scheduled_at, class: "{CSS: input}" %>
+    <%# <div class="form-group">
+      <%%= f.label :scheduled_at, class: "label" %>
+      <%%= f.datetime_local_field :scheduled_at, class: "input" %>
     </div> %>
 
     <%# Enum Field (Select) %>
-    <%# <div class="{CSS: form-group}">
-      <%%= f.label :status, class: "{CSS: label}" %>
+    <%# <div class="form-group">
+      <%%= f.label :status, class: "label" %>
       <%%= f.select :status,
                    {MODEL}.statuses.keys.map { |s| [s.humanize, s] },
                    { include_blank: "Select status..." },
-                   class: "{CSS: select}" %>
+                   class: "select" %>
     </div> %>
 
     <%# Belongs To Association (Select) %>
-    <%# <div class="{CSS: form-group}">
-      <%%= f.label :author_id, "Author", class: "{CSS: label}" %>
+    <%# <div class="form-group">
+      <%%= f.label :author_id, "Author", class: "label" %>
       <%%= f.collection_select :author_id,
                               User.order(:name),
                               :id, :name,
                               { include_blank: "Select author..." },
-                              class: "{CSS: select}" %>
+                              class: "select" %>
     </div> %>
 
     <%# JSON/JSONB Field (Text Area) %>
-    <%# <div class="{CSS: form-group} {CSS: form-group-full}">
-      <%%= f.label :metadata, class: "{CSS: label}" %>
+    <%# <div class="form-group form-group-full">
+      <%%= f.label :metadata, class: "label" %>
       <%%= f.text_area :metadata,
                       value: {model}.metadata.present? ? JSON.pretty_generate({model}.metadata) : "",
-                      class: "{CSS: textarea} {CSS: font-mono}",
+                      class: "textarea font-mono",
                       rows: 8,
                       placeholder: '{"key": "value"}' %>
-      <p class="{CSS: form-hint}">Enter valid JSON format</p>
+      <p class="form-hint">Enter valid JSON format</p>
     </div> %>
 
     <%# Active Storage Single Attachment %>
-    <%# <div class="{CSS: form-group}">
-      <%%= f.label :avatar, class: "{CSS: label}" %>
+    <%# <div class="form-group">
+      <%%= f.label :avatar, class: "label" %>
       <% if {model}.avatar.attached? %>
-        <div class="{CSS: attachment-preview} {CSS: mb-2}">
+        <div class="attachment-preview mb-2">
           <% if {model}.avatar.image? %>
-            <%%= image_tag {model}.avatar.variant(resize_to_limit: [100, 100]), class: "{CSS: img-thumbnail}" %>
+            <%%= image_tag {model}.avatar.variant(resize_to_limit: [100, 100]), class: "img-thumbnail" %>
           <% else %>
-            <span class="{CSS: text-muted}">Current file: <%%= {model}.avatar.filename %></span>
+            <span class="text-muted">Current file: <%%= {model}.avatar.filename %></span>
           <% end %>
-          <label class="{CSS: checkbox-wrapper} {CSS: mt-2}">
-            <%%= f.check_box :remove_avatar, { class: "{CSS: checkbox}" }, "1", "0" %>
-            <span class="{CSS: checkbox-label}">Remove current file</span>
+          <label class="checkbox-wrapper mt-2">
+            <%%= f.check_box :remove_avatar, { class: "checkbox" }, "1", "0" %>
+            <span class="checkbox-label">Remove current file</span>
           </label>
         </div>
       <% end %>
-      <%%= f.file_field :avatar, class: "{CSS: file-input}", accept: "image/*" %>
+      <%%= f.file_field :avatar, class: "file-input", accept: "image/*" %>
     </div> %>
 
     <%# Active Storage Multiple Attachments %>
-    <%# <div class="{CSS: form-group} {CSS: form-group-full}">
-      <%%= f.label :images, class: "{CSS: label}" %>
+    <%# <div class="form-group form-group-full">
+      <%%= f.label :images, class: "label" %>
       <% if {model}.images.attached? %>
-        <div class="{CSS: attachment-grid} {CSS: mb-2}">
+        <div class="attachment-grid mb-2">
           <% {model}.images.each do |image| %>
-            <div class="{CSS: attachment-item}">
+            <div class="attachment-item">
               <% if image.image? %>
-                <%%= image_tag image.variant(resize_to_limit: [80, 80]), class: "{CSS: img-thumbnail}" %>
+                <%%= image_tag image.variant(resize_to_limit: [80, 80]), class: "img-thumbnail" %>
               <% else %>
                 <span><%%= image.filename %></span>
               <% end %>
             </div>
           <% end %>
         </div>
-        <p class="{CSS: form-hint}">Upload new files to add. Check below to remove all.</p>
-        <label class="{CSS: checkbox-wrapper}">
-          <%%= f.check_box :remove_images, { class: "{CSS: checkbox}" }, "1", "0" %>
-          <span class="{CSS: checkbox-label}">Remove all images</span>
+        <p class="form-hint">Upload new files to add. Check below to remove all.</p>
+        <label class="checkbox-wrapper">
+          <%%= f.check_box :remove_images, { class: "checkbox" }, "1", "0" %>
+          <span class="checkbox-label">Remove all images</span>
         </label>
       <% end %>
-      <%%= f.file_field :images, class: "{CSS: file-input}", multiple: true, accept: "image/*" %>
+      <%%= f.file_field :images, class: "file-input", multiple: true, accept: "image/*" %>
     </div> %>
 
   </div>
 
   <%# Form Actions %>
-  <div class="{CSS: form-actions}">
-    <%%= f.submit {model}.persisted? ? "Update {MODEL}" : "Create {MODEL}", class: "{CSS: btn-primary}" %>
-    <%%= link_to "Cancel", {model}.persisted? ? {namespace}_{model}_path({model}) : {namespace}_{models}_path, class: "{CSS: btn-outline}" %>
+  <div class="form-actions">
+    <%%= f.submit {model}.persisted? ? "Update {MODEL}" : "Create {MODEL}", class: "btn-primary" %>
+    <%%= link_to "Cancel", {model}.persisted? ? {namespace}_{model}_path({model}) : {namespace}_{models}_path, class: "btn-outline" %>
   </div>
 
 <%% end %>

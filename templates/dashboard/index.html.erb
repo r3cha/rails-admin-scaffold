@@ -4,67 +4,68 @@
 #   {namespace} - Lowercase namespace (e.g., admin)
 #   {MODELS} - Array of model names for stat cards
 #
-# CSS classes use {CSS_FRAMEWORK} placeholders.
+# Replace all CSS classes below with appropriate classes for the detected framework.
+# Class names shown are semantic hints only.
 %>
 
 <%% content_for :title do %>Dashboard - Admin<%% end %>
 
-<div class="{CSS: page-header}">
-  <h1 class="{CSS: page-title}">Dashboard</h1>
-  <p class="{CSS: page-subtitle}">Welcome to the admin panel</p>
+<div class="page-header">
+  <h1 class="page-title">Dashboard</h1>
+  <p class="page-subtitle">Welcome to the admin panel</p>
 </div>
 
 <%# Stats Cards %>
-<div class="{CSS: stats-grid}">
+<div class="stats-grid">
   <%% @stats.each do |model_name, stat| %>
-    <div class="{CSS: stat-card}">
-      <div class="{CSS: stat-card-body}">
-        <div class="{CSS: stat-icon-container}">
-          <svg class="{CSS: stat-icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="stat-card">
+      <div class="stat-card-body">
+        <div class="stat-icon-container">
+          <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
           </svg>
         </div>
-        <div class="{CSS: stat-content}">
-          <p class="{CSS: stat-label}"><%%= model_name.to_s.humanize.pluralize %></p>
-          <p class="{CSS: stat-value}"><%%= number_with_delimiter(stat[:count]) %></p>
-          <div class="{CSS: stat-details}">
-            <span class="{CSS: stat-detail-item}">
-              <span class="{CSS: stat-detail-value}"><%%= stat[:today] || 0 %></span> today
+        <div class="stat-content">
+          <p class="stat-label"><%%= model_name.to_s.humanize.pluralize %></p>
+          <p class="stat-value"><%%= number_with_delimiter(stat[:count]) %></p>
+          <div class="stat-details">
+            <span class="stat-detail-item">
+              <span class="stat-detail-value"><%%= stat[:today] || 0 %></span> today
             </span>
-            <span class="{CSS: stat-detail-item}">
-              <span class="{CSS: stat-detail-value}"><%%= stat[:this_week] || 0 %></span> this week
+            <span class="stat-detail-item">
+              <span class="stat-detail-value"><%%= stat[:this_week] || 0 %></span> this week
             </span>
           </div>
         </div>
       </div>
-      <div class="{CSS: stat-card-footer}">
+      <div class="stat-card-footer">
         <%%= link_to "View all", send("{namespace}_#{model_name}_path"),
-                    class: "{CSS: stat-link}" %>
+                    class: "stat-link" %>
       </div>
     </div>
   <%% end %>
 
   <%# Empty state if no stats %>
   <%% if @stats.empty? %>
-    <div class="{CSS: empty-state} {CSS: col-span-full}">
-      <p class="{CSS: text-muted}">No statistics available.</p>
+    <div class="empty-state col-span-full">
+      <p class="text-muted">No statistics available.</p>
     </div>
   <%% end %>
 </div>
 
 <%# Recent Activity %>
-<div class="{CSS: card} {CSS: mt-6}">
-  <div class="{CSS: card-header}">
-    <h2 class="{CSS: card-title}">Recent Activity</h2>
+<div class="card mt-6">
+  <div class="card-header">
+    <h2 class="card-title">Recent Activity</h2>
   </div>
-  <div class="{CSS: card-body}">
+  <div class="card-body">
     <%% if @recent_activity.any? %>
-      <div class="{CSS: activity-feed}">
+      <div class="activity-feed">
         <%% @recent_activity.each do |activity| %>
-          <div class="{CSS: activity-item}">
-            <div class="{CSS: activity-icon}">
-              <svg class="{CSS: icon-sm}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="activity-item">
+            <div class="activity-icon">
+              <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <%% case activity[:action] %>
                 <%% when "created" %>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
@@ -77,17 +78,17 @@
                 <%% end %>
               </svg>
             </div>
-            <div class="{CSS: activity-content}">
-              <p class="{CSS: activity-text}">
-                <span class="{CSS: activity-model}"><%%= activity[:model] %></span>
-                <span class="{CSS: activity-action}"><%%= activity[:action] %></span>
+            <div class="activity-content">
+              <p class="activity-text">
+                <span class="activity-model"><%%= activity[:model] %></span>
+                <span class="activity-action"><%%= activity[:action] %></span>
                 <%% if activity[:record].respond_to?(:to_s) %>
                   <%%= link_to activity[:record].to_s.truncate(30),
                               send("{namespace}_#{activity[:model].underscore}_path", activity[:record]),
-                              class: "{CSS: link}" %>
+                              class: "link" %>
                 <%% end %>
               </p>
-              <p class="{CSS: activity-time}">
+              <p class="activity-time">
                 <%%= time_ago_in_words(activity[:time]) %> ago
               </p>
             </div>
@@ -95,28 +96,28 @@
         <%% end %>
       </div>
     <%% else %>
-      <div class="{CSS: empty-state}">
-        <p class="{CSS: text-muted}">No recent activity.</p>
+      <div class="empty-state">
+        <p class="text-muted">No recent activity.</p>
       </div>
     <%% end %>
   </div>
 </div>
 
 <%# Quick Actions %>
-<div class="{CSS: card} {CSS: mt-6}">
-  <div class="{CSS: card-header}">
-    <h2 class="{CSS: card-title}">Quick Actions</h2>
+<div class="card mt-6">
+  <div class="card-header">
+    <h2 class="card-title">Quick Actions</h2>
   </div>
-  <div class="{CSS: card-body}">
-    <div class="{CSS: quick-actions-grid}">
+  <div class="card-body">
+    <div class="quick-actions-grid">
       <%#
       # Add quick action buttons for common tasks.
       # Replace with actual resources from model discovery.
       %>
 
       <%# Example: New User button
-      <%%= link_to new_{namespace}_user_path, class: "{CSS: quick-action}" do %>
-        <svg class="{CSS: quick-action-icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <%%= link_to new_{namespace}_user_path, class: "quick-action" do %>
+        <svg class="quick-action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
         </svg>
@@ -124,7 +125,7 @@
       <%% end %>
       %>
 
-      <p class="{CSS: text-muted}">Quick actions will be added here.</p>
+      <p class="text-muted">Quick actions will be added here.</p>
     </div>
   </div>
 </div>

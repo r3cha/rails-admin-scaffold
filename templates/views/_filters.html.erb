@@ -10,17 +10,18 @@
 #   {ENUMS} - Array of enums for filter selects
 #   {HAS_SOFT_DELETE} - true/false
 #
-# CSS classes use {CSS_FRAMEWORK} placeholders.
+# Replace all CSS classes below with appropriate classes for the detected framework.
+# Class names shown are semantic hints only.
 %>
 
-<%%= search_form_for @q, url: {namespace}_{models}_path, method: :get, class: "{CSS: filter-form}" do |f| %>
+<%%= search_form_for @q, url: {namespace}_{models}_path, method: :get, class: "filter-form" do |f| %>
 
-  <div class="{CSS: filter-grid}">
+  <div class="filter-grid">
     <%# Text Search (searches multiple string fields) %>
-    <div class="{CSS: form-group}">
-      <%%= f.label :name_or_email_cont, "Search", class: "{CSS: label}" %>
+    <div class="form-group">
+      <%%= f.label :name_or_email_cont, "Search", class: "label" %>
       <%%= f.search_field :name_or_email_cont,
-                         class: "{CSS: input}",
+                         class: "input",
                          placeholder: "Search by name or email..." %>
     </div>
 
@@ -37,60 +38,60 @@
     %>
 
     <%# Enum Filter %>
-    <%# <div class="{CSS: form-group}">
-      <%%= f.label :status_eq, "Status", class: "{CSS: label}" %>
+    <%# <div class="form-group">
+      <%%= f.label :status_eq, "Status", class: "label" %>
       <%%= f.select :status_eq,
                    {MODEL}.statuses.keys.map { |s| [s.humanize, s] },
                    { include_blank: "All statuses" },
-                   class: "{CSS: select}" %>
+                   class: "select" %>
     </div> %>
 
     <%# Boolean Filter %>
-    <%# <div class="{CSS: form-group}">
-      <%%= f.label :active_eq, "Active", class: "{CSS: label}" %>
+    <%# <div class="form-group">
+      <%%= f.label :active_eq, "Active", class: "label" %>
       <%%= f.select :active_eq,
                    [["Yes", true], ["No", false]],
                    { include_blank: "All" },
-                   class: "{CSS: select}" %>
+                   class: "select" %>
     </div> %>
 
     <%# Belongs To Filter %>
-    <%# <div class="{CSS: form-group}">
-      <%%= f.label :author_id_eq, "Author", class: "{CSS: label}" %>
+    <%# <div class="form-group">
+      <%%= f.label :author_id_eq, "Author", class: "label" %>
       <%%= f.collection_select :author_id_eq,
                               User.order(:name),
                               :id, :name,
                               { include_blank: "All authors" },
-                              class: "{CSS: select}" %>
+                              class: "select" %>
     </div> %>
 
     <%# Date Range Filter - From %>
-    <div class="{CSS: form-group}">
-      <%%= f.label :created_at_gteq, "Created from", class: "{CSS: label}" %>
-      <%%= f.date_field :created_at_gteq, class: "{CSS: input}" %>
+    <div class="form-group">
+      <%%= f.label :created_at_gteq, "Created from", class: "label" %>
+      <%%= f.date_field :created_at_gteq, class: "input" %>
     </div>
 
     <%# Date Range Filter - To %>
-    <div class="{CSS: form-group}">
-      <%%= f.label :created_at_lteq, "Created to", class: "{CSS: label}" %>
-      <%%= f.date_field :created_at_lteq, class: "{CSS: input}" %>
+    <div class="form-group">
+      <%%= f.label :created_at_lteq, "Created to", class: "label" %>
+      <%%= f.date_field :created_at_lteq, class: "input" %>
     </div>
 
     <%# Soft Delete Filter %>
     <% if {HAS_SOFT_DELETE} %>
-      <div class="{CSS: form-group}">
-        <div class="{CSS: checkbox-wrapper}">
-          <%%= check_box_tag :show_deleted, "1", params[:show_deleted] == "1", class: "{CSS: checkbox}" %>
-          <%%= label_tag :show_deleted, "Show deleted", class: "{CSS: checkbox-label}" %>
+      <div class="form-group">
+        <div class="checkbox-wrapper">
+          <%%= check_box_tag :show_deleted, "1", params[:show_deleted] == "1", class: "checkbox" %>
+          <%%= label_tag :show_deleted, "Show deleted", class: "checkbox-label" %>
         </div>
       </div>
     <% end %>
   </div>
 
   <%# Sort Order %>
-  <div class="{CSS: filter-row} {CSS: mt-2}">
-    <div class="{CSS: form-group-inline}">
-      <%%= f.label :s, "Sort by", class: "{CSS: label}" %>
+  <div class="filter-row mt-2">
+    <div class="form-group-inline">
+      <%%= f.label :s, "Sort by", class: "label" %>
       <%%= f.select :s,
                    [
                      ["Newest first", "created_at desc"],
@@ -103,14 +104,14 @@
                      # ["Name (Z-A)", "name desc"]
                    ],
                    { include_blank: false },
-                   class: "{CSS: select}" %>
+                   class: "select" %>
     </div>
   </div>
 
   <%# Filter Actions %>
-  <div class="{CSS: filter-actions}">
-    <%%= f.submit "Apply Filters", class: "{CSS: btn-primary}" %>
-    <%%= link_to "Clear Filters", {namespace}_{models}_path, class: "{CSS: btn-outline}" %>
+  <div class="filter-actions">
+    <%%= f.submit "Apply Filters", class: "btn-primary" %>
+    <%%= link_to "Clear Filters", {namespace}_{models}_path, class: "btn-outline" %>
   </div>
 
 <%% end %>

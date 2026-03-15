@@ -71,24 +71,31 @@ taken_namespaces = ["admin", "backend", "management"]
 **Common namespace options to check:**
 - `admin`, `backend`, `dashboard`, `management`, `panel`, `console`, `staff`
 
-### 1.2 Detect CSS Framework
+### 1.2 Detect CSS Framework & Patterns
 
-Read these files to determine CSS framework:
+The skill is **framework-agnostic** — it does NOT hardcode CSS class names. Instead, it discovers the project's actual CSS patterns by reading existing views.
 
-```ruby
-# Priority order:
-# 1. Tailwind: tailwind.config.js or config/tailwind.config.js exists
-# 2. Bootstrap: Gemfile contains 'bootstrap' or package.json contains 'bootstrap'
-# 3. Bulma: Gemfile contains 'bulma' or package.json contains 'bulma'
-# 4. Default: Tailwind (will need to be added)
-```
+**Step 1: Identify the CSS framework**
 
-**Detection logic:**
-- Read `tailwind.config.js` or `config/tailwind.config.js` → **Tailwind**
-- Read `Gemfile` for `gem 'bootstrap'` or `gem 'cssbundling-rails'` + `package.json` for `bootstrap` → **Bootstrap**
-- Read `Gemfile` or `package.json` for `bulma` → **Bulma**
+Check `Gemfile`, `package.json`, config files to identify what framework is used:
+- `tailwind.config.js` or `config/tailwind.config.js` → Tailwind
+- `package.json` for `bootstrap`, `@tabler/core`, or similar → Bootstrap variant
+- `Gemfile` for `bootstrap`, `bulma`, etc.
+- SCSS imports in stylesheet entrypoints (`@import "@tabler/core"`, `@import "bootstrap"`, etc.)
 
-Store result as: `css_framework = "tailwind" | "bootstrap" | "bulma"`
+Store result as: `css_framework = "tailwind" | "bootstrap" | "bulma" | "{other}"`
+
+**Step 2: Extract actual CSS class patterns from existing views**
+
+This is the critical step. **Read 3-5 existing views** in the project to learn how the project uses CSS classes. Look at:
+- The main application layout (`app/views/layouts/`)
+- An existing index/list view with a table
+- An existing form view
+- An existing show/detail view
+
+**Step 3: Use appropriate CSS classes directly in ALL generated views**
+
+Detect the CSS framework from the project (Gemfile, package.json, existing views/layouts) and use appropriate classes directly. Do not use placeholder syntax. Every generated view file must use real CSS classes that match the project's detected framework and patterns.
 
 ### 1.3 Detect Pagination Gem
 
@@ -173,18 +180,19 @@ dragonfly_accessor     # → Dragonfly
 
 ```erb
 <%# Active Storage %>
-<%%= form.file_field :avatar, accept: "image/*", class: "{CSS: file-input}" %>
+<%# Use appropriate CSS classes for the detected framework %>
+<%%= form.file_field :avatar, accept: "image/*", class: "file-input-class" %>
 <%% if record.avatar.attached? %>
-  <div class="{CSS: file-preview}">
+  <div class="file-preview-class">
     <%%= image_tag record.avatar.variant(resize_to_limit: [200, 200]) %>
     <%%= form.check_box :remove_avatar, label: "Remove" %>
   </div>
 <%% end %>
 
 <%# CarrierWave %>
-<%%= form.file_field :avatar, class: "{CSS: file-input}" %>
+<%%= form.file_field :avatar, class: "file-input-class" %>
 <%% if record.avatar.present? %>
-  <div class="{CSS: file-preview}">
+  <div class="file-preview-class">
     <%%= image_tag record.avatar.thumb.url %>
     <%%= form.check_box :remove_avatar %>
   </div>
@@ -192,17 +200,91 @@ dragonfly_accessor     # → Dragonfly
 
 <%# Shrine %>
 <%%= form.hidden_field :avatar, value: record.cached_avatar_data %>
-<%%= form.file_field :avatar, class: "{CSS: file-input}" %>
+<%%= form.file_field :avatar, class: "file-input-class" %>
 
 <%# Paperclip %>
-<%%= form.file_field :avatar, class: "{CSS: file-input}" %>
+<%%= form.file_field :avatar, class: "file-input-class" %>
 
 <%# Dragonfly %>
-<%%= form.file_field :avatar, class: "{CSS: file-input}" %>
+<%%= form.file_field :avatar, class: "file-input-class" %>
 <%%= form.hidden_field :retained_avatar %>
 ```
 
-### 1.7 Discover Models
+### 1.7 Detect Asset Pipeline & Stylesheet/JS Entrypoints
+
+**IMPORTANT:** The admin layout must reference the correct stylesheet and JavaScript entrypoints that actually exist in the project. Do NOT assume `"application"` exists — many Rails apps use named entrypoints.
+
+**Detection steps:**
+
+1. Check which asset system is used:
+```ruby
+# Gemfile:
+gem 'cssbundling-rails'   # → CSS built via external bundler (sass, postcss, tailwind CLI)
+gem 'jsbundling-rails'    # → JS built via external bundler (esbuild, rollup, webpack)
+gem 'sprockets-rails'     # → Sprockets asset pipeline
+gem 'propshaft'           # → Propshaft asset pipeline
+gem 'importmap-rails'     # → Import maps (no JS bundler)
+gem 'webpacker'           # → Webpack (legacy)
+gem 'vite_rails'          # → Vite
+```
+
+2. Find existing stylesheet entrypoints:
+```bash
+# For cssbundling-rails: check entrypoints directory or build:css script in package.json
+# Common locations:
+#   app/assets/stylesheets/entrypoints/*.scss
+#   app/assets/stylesheets/*.scss (root-level files)
+#   Check package.json "build:css" script for input paths
+
+# For sprockets/propshaft:
+#   app/assets/stylesheets/application.css or application.scss
+
+# For webpacker:
+#   app/javascript/packs/*.js (may include CSS imports)
+
+# For vite:
+#   Check vite.json or config/vite.rb for entrypoints
+```
+
+3. Find existing JS entrypoints:
+```bash
+# For jsbundling-rails: check esbuild.config.mjs, rollup.config.js, or webpack.config.js
+# For sprockets: app/assets/javascripts/application.js
+# For importmap: config/importmap.rb
+# For webpacker: app/javascript/packs/*.js
+```
+
+4. Check existing layouts to see what tags they use:
+```bash
+# Search for stylesheet/javascript tags in all layouts:
+grep -r "stylesheet_link_tag\|stylesheet_pack_tag\|vite_stylesheet_tag" app/views/layouts/
+grep -r "javascript_include_tag\|javascript_pack_tag\|vite_javascript_tag" app/views/layouts/
+```
+
+**Store results as:**
+```ruby
+asset_system = {
+  css: "cssbundling" | "sprockets" | "propshaft" | "webpacker" | "vite",
+  js: "jsbundling" | "sprockets" | "importmap" | "webpacker" | "vite",
+  css_entrypoints: ["ats", "career_site"],  # actual entrypoint names found
+  js_entrypoints: ["ats", "career_site"],   # actual entrypoint names found
+  # Pick the best existing entrypoint for the admin layout:
+  # Prefer the main app entrypoint (e.g. "ats", "application") that includes Bootstrap/Tabler
+  admin_css_entrypoint: "ats",
+  admin_js_entrypoint: "ats"
+}
+```
+
+**CRITICAL:** In the admin layout (Phase 4.4), use only the detected entrypoint names with the correct tag helpers:
+- `cssbundling-rails` + `sprockets-rails` → `stylesheet_link_tag "{entrypoint}"`
+- `propshaft` → `stylesheet_link_tag "{entrypoint}"`
+- `webpacker` → `stylesheet_pack_tag "{entrypoint}"`
+- `vite_rails` → `vite_stylesheet_tag "{entrypoint}"`
+- Same pattern for JS tags
+
+**Never assume `"application"` exists.** Always verify against the actual entrypoints found.
+
+### 1.8 Discover Models
 
 ```bash
 # List all model files
@@ -215,7 +297,7 @@ Parse each model file to extract:
 
 Store as: `models = ["User", "Post", "Comment", ...]`
 
-### 1.7 Detect Existing Admin Panels
+### 1.9 Detect Existing Admin Panels
 
 Check for existing admin implementations to understand current patterns:
 
@@ -300,7 +382,13 @@ Look for Annotate gem comments at top of model:
 #  updated_at             :datetime         not null
 ```
 
-If no annotation, read `db/schema.rb` for the table definition.
+If no annotation, read `db/schema.rb` or `db/structure.sql` for the table definition.
+
+**IMPORTANT - Column Verification:** For every model, record the **exact list of columns** that exist in the database table. Store this as `model_columns[ModelName] = [col1, col2, ...]`. This is critical because:
+- Not all tables have `created_at`/`updated_at` timestamps
+- Some tables may lack columns you'd normally expect
+- **Never generate queries, sorts, filters, or views that reference columns not present in the actual schema**
+- Before using any column in generated code (dashboard stats, index sorting, filters, form fields, table columns), verify it exists in `model_columns` for that model
 
 ### 2.2 Extract Field Types
 
@@ -420,97 +508,48 @@ If user selects "Other", use their custom namespace.
 
 ### Question 2: Models to Exclude
 
-Before asking, analyze models and categorize them:
+**First, analyze models to determine recommended exclusions:**
 
 ```ruby
-# Auto-detect model categories:
+# Detect which models should be pre-checked for exclusion:
 
-# 1. Technical models (always exclude)
-technical_models = [
-  # Abstract/base classes
-  "ApplicationRecord",
-  # Models matching patterns: *Record, *Base, Abstract*
-]
-
-# 2. Join table models (likely exclude)
-# Models with only foreign keys + timestamps, used for has_many :through
-join_models = models.select do |m|
-  columns = m.column_names - %w[id created_at updated_at]
-  columns.all? { |c| c.ends_with?('_id') }
-end
-
-# 3. Empty tables (likely exclude)
-# Models with 0 records - often internal registries, configs
-empty_models = models.select { |m| m.count == 0 }
-
-# 4. Nested/child models (suggest exclude, manage via parent)
-# Naming patterns: Parent* (CandidateEmailAddress, UserPhone, etc.)
-# Models that only belong_to one parent and have no independent meaning
-nested_models = models.select do |m|
-  # Has belongs_to and name starts with parent model name
-  # e.g., CandidatePhone belongs_to :candidate
-end
-
-# 5. Primary models (include by default)
-primary_models = models - technical_models - join_models - empty_models - nested_models
+# Technical (exclude): ApplicationRecord, abstract classes, *Record/*Base patterns
+# Join tables (exclude): models with only foreign key columns
+# Empty tables (exclude): models with 0 records
+# Nested/child (exclude): models named Parent* that belong_to :parent
+#   e.g., CandidatePhone, CandidateEmail → belong_to :candidate
 ```
 
-**Build dynamic options based on detection:**
+**Show flat list of ALL models with checkboxes:**
 
-```json
-{
-  "question": "Which models should be EXCLUDED from the admin panel?",
-  "header": "Exclude",
-  "options": [
-    {
-      "label": "Smart exclude (Recommended)",
-      "description": "Include {N} primary models, exclude {M} technical/join/empty models"
-    },
-    {
-      "label": "Include all {total} models",
-      "description": "Generate admin for every model including join tables"
-    },
-    {
-      "label": "Select specific models",
-      "description": "I'll review and choose which to exclude"
-    }
-  ],
-  "multiSelect": false
-}
+Pre-check models recommended for exclusion. User can check/uncheck any.
+
+```
+Which models do you want to EXCLUDE from the admin panel?
+(Pre-checked = recommended to exclude)
+
+[ ] {Model}
+[ ] {Model}                        ← technical
+[x] {Model}                        ← nested → {ParentModel}
+[x] {Model}                        ← empty (0 records)
+[x] {Model}                        ← join table
+... (all models from project)
+
+{N} models selected for exclusion. Press Enter to confirm.
 ```
 
-**If "Smart exclude" selected, show summary:**
-```
-Including {N} primary models:
-  User, Post, Comment, Order, Product, ...
+**Format for each model:**
+- `[ ] ModelName` — primary model, included by default
+- `[x] ModelName ← nested → Parent` — child model, excluded (manage via parent form)
+- `[x] ModelName ← empty (0 records)` — empty table, excluded
+- `[x] ModelName ← technical` — system model, excluded
+- `[x] ModelName ← join table` — through table, excluded
 
-Excluding {M} models:
-  Technical: ApplicationRecord
-  Join tables: PostTag, UserRole
-  Empty tables: LiquidTemplate, FeatureFlag
-  Nested (manage via parent): CandidateEmail, CandidatePhone, UserAddress
-
-You can manage nested models through their parent's edit form with nested attributes.
-```
-
-**If "Select specific models"**, show multiSelect with categories:
-```json
-{
-  "question": "Select models to EXCLUDE from admin:",
-  "header": "Exclude",
-  "options": [
-    // Group by category, pre-select recommended exclusions
-    {"label": "ApplicationRecord", "description": "technical ✓"},
-    {"label": "PostTag", "description": "join table ✓"},
-    {"label": "LiquidTemplate", "description": "empty (0 records) ✓"},
-    {"label": "CandidatePhone", "description": "nested → Candidate ✓"},
-    {"label": "User", "description": "primary (1,234 records)"},
-    {"label": "Post", "description": "primary (567 records)"},
-    // ...
-  ],
-  "multiSelect": true
-}
-```
+**Notes:**
+- Models marked "nested → Parent" can be managed via parent's edit form
+- Models marked "empty" have 0 records (internal registries)
+- Models marked "technical" are system/framework models
+- User can check/uncheck any model to customize
 
 ### Question 3: Model Configuration Mode
 
@@ -628,19 +667,78 @@ SENSITIVE_FIELDS = %w[
 
 ### Question 4: Authentication
 
+**First, detect existing admin authentication:**
+
+```ruby
+# 1. Check Rails Admin config
+# config/initializers/rails_admin.rb:
+#   config.authenticate_with { ... }
+#   config.current_user_method { ... }
+
+# 2. Check ActiveAdmin config
+# config/initializers/active_admin.rb:
+#   config.authentication_method = :authenticate_admin_user!
+#   config.current_user_method = :current_admin_user
+
+# 3. Check existing admin base controller
+# app/controllers/admin/base_controller.rb:
+#   before_action :authenticate_admin_user!  → Devise AdminUser
+#   http_basic_authenticate_with ...         → HTTP Basic
+#   before_action :require_admin             → Custom check
+
+# 4. Check for AdminUser/Admin model
+# app/models/admin_user.rb or app/models/admin.rb → Devise admin model
+
+# 5. Check Devise config
+# config/initializers/devise.rb - which models use Devise?
+```
+
+**Detection results:**
+```ruby
+existing_admin_auth = {
+  method: "devise_admin_user" | "devise_user" | "http_basic" | "custom" | nil,
+  model: "AdminUser" | "User" | nil,
+  details: "Found AdminUser model with Devise" | "HTTP Basic in rails_admin.rb" | ...
+}
+```
+
+**Build options based on detection:**
+
+**If existing admin auth detected:**
+```
+Detected authentication: {method} ({details})
+```
+
+```json
+{
+  "question": "How should admin authentication work?",
+  "header": "Auth",
+  "options": [
+    // First option matches existing admin auth
+    {"label": "{detected_method} (Recommended)", "description": "Same as existing admin: {details}"},
+    {"label": "Devise AdminUser", "description": "Create separate AdminUser model with Devise"},
+    {"label": "HTTP Basic Auth", "description": "Simple username/password protection"},
+    {"label": "Skip authentication", "description": "No auth - secure with other means"}
+  ],
+  "multiSelect": false
+}
+```
+
+**If no existing admin detected:**
 ```json
 {
   "question": "How should admin authentication work?",
   "header": "Auth",
   "options": [
     {"label": "Devise AdminUser (Recommended)", "description": "Create separate AdminUser model with Devise"},
-    {"label": "Existing User model", "description": "Use current User model with admin role/flag"},
-    {"label": "Skip authentication", "description": "No auth - secure with other means"},
-    {"label": "HTTP Basic Auth", "description": "Simple username/password protection"}
+    {"label": "HTTP Basic Auth", "description": "Simple username/password for dev/staging"},
+    {"label": "Skip authentication", "description": "No auth - add manually later"}
   ],
   "multiSelect": false
 }
 ```
+
+**Important:** Don't suggest using application user models (User, Member, Account) with role checks unless that's what the existing admin actually uses. Application users ≠ system admins.
 
 ### Question 5: Internationalization
 
@@ -693,6 +791,8 @@ SENSITIVE_FIELDS = %w[
 ## Phase 4: Generation
 
 Generate files in this specific order. Use templates from `templates/` directory.
+
+**IMPORTANT — CSS Classes:** When generating views, use the actual CSS classes appropriate for the project's detected CSS framework (from Phase 1.2). Detect the CSS framework from the project (Gemfile, package.json, existing views/layouts) and use appropriate classes directly. Do not use placeholder syntax. Never output placeholder tokens in generated files.
 
 ### 4.1 Add Gems (if needed)
 
@@ -826,6 +926,11 @@ end
 
 Create `app/views/layouts/{namespace}.html.erb` using `templates/shared/layout.html.erb`.
 
+**IMPORTANT - Asset Tags:** Use the entrypoint names detected in Phase 1.7. In the layout's `<head>`, use:
+- `stylesheet_link_tag "{admin_css_entrypoint}"` (NOT `"application"` unless that's what was actually detected)
+- `javascript_include_tag "{admin_js_entrypoint}"` (NOT `"application"` unless that's what was actually detected)
+- Use the correct tag helper for the project's asset system (e.g., `stylesheet_pack_tag` for webpacker, `vite_stylesheet_tag` for vite)
+
 Create `app/views/{namespace}/shared/` partials:
 - `_sidebar.html.erb` - Navigation with all resources
 - `_flash.html.erb` - Flash message display
@@ -836,75 +941,14 @@ Create `app/views/{namespace}/shared/` partials:
 
 **Export Modal** (`_export_modal.html.erb`):
 
-```erb
-<%# Export modal with field selection %>
-<div id="export-modal" class="{CSS: modal}" data-controller="export-modal">
-  <div class="{CSS: modal-content}">
-    <div class="{CSS: modal-header}">
-      <h3>Export <%= controller_name.humanize %></h3>
-      <button type="button" data-action="export-modal#close">&times;</button>
-    </div>
-
-    <%= form_tag export_path(format: :csv), method: :post, data: { export_modal_target: "form" } do %>
-      <%# Pass current filters %>
-      <% params[:q]&.each do |key, value| %>
-        <%= hidden_field_tag "q[#{key}]", value %>
-      <% end %>
-
-      <%# Pass selected IDs if bulk export %>
-      <% if local_assigns[:selected_ids].present? %>
-        <% selected_ids.each do |id| %>
-          <%= hidden_field_tag "ids[]", id %>
-        <% end %>
-      <% end %>
-
-      <div class="{CSS: modal-body}">
-        <p class="{CSS: text-muted}">
-          Exporting <strong><%= record_count %></strong> records
-          <% if selected_ids.present? %>
-            (<%= selected_ids.size %> selected)
-          <% else %>
-            (filtered)
-          <% end %>
-        </p>
-
-        <div class="{CSS: form-group}">
-          <label class="{CSS: label}">Select fields to export:</label>
-
-          <div class="{CSS: checkbox-group}">
-            <label class="{CSS: checkbox}">
-              <%= check_box_tag "select_all", "1", true, data: { action: "export-modal#toggleAll" } %>
-              <strong>Select All</strong>
-            </label>
-          </div>
-
-          <div class="{CSS: checkbox-grid}" data-export-modal-target="fields">
-            <% fields.each do |field_name, field_label| %>
-              <label class="{CSS: checkbox}">
-                <%= check_box_tag "export_fields[]", field_name, true, data: { export_modal_target: "field" } %>
-                <%= field_label %>
-              </label>
-            <% end %>
-          </div>
-        </div>
-      </div>
-
-      <div class="{CSS: modal-footer}">
-        <button type="button" class="{CSS: btn-secondary}" data-action="export-modal#close">
-          Cancel
-        </button>
-        <button type="submit" name="format" value="csv" class="{CSS: btn-primary}">
-          Export CSV
-        </button>
-        <%# If Excel enabled %>
-        <button type="submit" name="format" value="xlsx" class="{CSS: btn-primary}">
-          Export Excel
-        </button>
-      </div>
-    <% end %>
-  </div>
-</div>
-```
+Generate an export modal partial with field selection. Use appropriate CSS classes for the detected framework (e.g., Bootstrap modal classes, Tailwind utility classes, etc.). The modal should include:
+- A header with title and close button
+- A form that posts to the export path. **CRITICAL: add `data: { turbo: false }` to the form** so Turbo does not intercept the response — the browser must handle the CSV `send_data` response as a file download, not as a Turbo Stream.
+- Hidden fields to pass current ransack filters and selected IDs
+- A record count display
+- A "Select All" checkbox and individual field checkboxes
+- A footer with Cancel, Export CSV, and optionally Export Excel buttons
+- Stimulus controller data attributes for interactivity
 
 **Export Modal Stimulus Controller** (if has_stimulus):
 
@@ -955,25 +999,32 @@ export default class extends Controller {
 }
 ```
 
-**IMPORTANT:** Use CSS classes from `css/{css_framework}.md` for all styling.
+**IMPORTANT:** Detect the CSS framework from the project (Gemfile, package.json, existing views/layouts) and use appropriate classes directly in all generated views. Do not use placeholder syntax.
 
 ### 4.5 Create Dashboard
 
 Create `app/controllers/{namespace}/dashboard_controller.rb`:
+
+**IMPORTANT - Column Verification:** Before generating dashboard stats or recent activity queries, check `model_columns` (from Phase 2.1) for each model:
+- Only include `this_month: Model.where("created_at >= ?", 1.month.ago).count` if the model's table actually has a `created_at` column
+- Only include models in `recent_activity` (ordered by `created_at`) if they have a `created_at` column
+- For models without `created_at`, show only the total count (no "this month" stat)
 
 ```ruby
 module {Namespace}
   class DashboardController < BaseController
     def index
       @stats = {
-        # For each model:
-        users: User.count,
-        posts: Post.count,
+        # For each model, check model_columns first:
+        # If model has created_at:
+        users: { count: User.count, this_month: User.where("created_at >= ?", 1.month.ago).count },
+        # If model does NOT have created_at:
+        accounts: { count: Account.count },
         # etc.
       }
 
       @recent_activity = [
-        # Last 10 records from each model with timestamps
+        # Last 10 records from models that HAVE created_at columns ONLY
       ]
     end
   end
@@ -981,8 +1032,8 @@ end
 ```
 
 Create `app/views/{namespace}/dashboard/index.html.erb` with:
-- Stat cards for each model (count, recent count)
-- Recent activity feed
+- Stat cards for each model (count, and recent count only if `created_at` exists)
+- Recent activity feed (only from models with `created_at`)
 - Quick links to each resource
 
 ### 4.6 Create Resource Controllers
@@ -990,6 +1041,12 @@ Create `app/views/{namespace}/dashboard/index.html.erb` with:
 For each included model, create `app/controllers/{namespace}/{model_plural}_controller.rb`:
 
 Use `templates/controllers/resource_controller.rb` as base.
+
+**IMPORTANT - Column Verification:** Before generating any controller, verify all referenced columns exist in `model_columns` (from Phase 2.1):
+- Default sort `@q.sorts = "created_at desc"` — only use if `created_at` exists, otherwise use `"id desc"` or another existing column
+- Ransack filters — only include filters for columns that actually exist
+- Strong parameters — only permit columns that actually exist
+- Show/index fields — only display columns that actually exist
 
 **Based on CRUD configuration (Question 3):**
 
@@ -1048,28 +1105,25 @@ For each included model, create views in `app/views/{namespace}/{model_plural}/`
 - If CRUD: "New" button, bulk action checkboxes, edit/delete links
 - If read-only: only "View" links, no bulk actions
 
-**Export buttons** (if export enabled):
-```erb
-<div class="{CSS: btn-group}">
-  <%# Export filtered records %>
-  <%= link_to "Export", "#",
-      class: "{CSS: btn-secondary}",
-      data: { action: "export-modal#open" } %>
+**CRITICAL - Params in URL Helpers (Rails 7.1+):** Two different objects, two different rules:
+- `params[:q]` → `ActionController::Parameters` → call `.to_unsafe_h` before passing to URL helpers
+- `request.params` → `HashWithIndifferentAccess` (plain hash) → use directly, do NOT call `.to_unsafe_h`
 
-  <%# Export selected records (shown when records selected) %>
-  <span data-bulk-select-target="bulkActions" class="hidden">
-    <%= link_to "Export Selected", "#",
-        class: "{CSS: btn-secondary}",
-        data: { action: "export-modal#open" } %>
-  </span>
-</div>
-
-<%# Include export modal %>
-<%= render "{namespace}/shared/export_modal",
-    fields: exportable_fields_for(@model_class),
-    record_count: @query.result.count,
-    selected_ids: nil %>
+```ruby
+# CORRECT
+link_to "Export", path(format: :csv, q: params[:q]&.to_unsafe_h)
+query_params = params[:q]&.to_unsafe_h || {}
+link_to title, request.params.merge("q" => query_params.merge("s" => "#{column} #{direction}"))
 ```
+
+See `reference/patterns.md` for the complete sortable_header helper pattern.
+
+**Export buttons** (if export enabled):
+
+Generate export buttons using appropriate CSS classes for the detected framework. Include:
+- An "Export" link that triggers the export modal (for filtered records)
+- An "Export Selected" link (hidden by default, shown when bulk checkboxes are selected)
+- Render the export modal partial with field data, record count, and selected IDs
 
 **show.html.erb** - Use `templates/views/show.html.erb`:
 - Field display based on type
@@ -1108,12 +1162,14 @@ Replicate custom view sections from existing admin:
 
 For each model without existing ransackable methods, add:
 
+**IMPORTANT:** Only include column names that actually exist in `model_columns` (from Phase 2.1). Do not assume `created_at`, `updated_at`, or any other column exists.
+
 ```ruby
 # In app/models/{model}.rb
 
 def self.ransackable_attributes(auth_object = nil)
-  # List of searchable column names
-  ["name", "email", "status", "created_at"]
+  # ONLY list columns that actually exist in the table
+  ["name", "email", "status", "created_at"]  # ← verify each against model_columns
 end
 
 def self.ransackable_associations(auth_object = nil)
@@ -1402,16 +1458,14 @@ This is fine for development, but **NEVER deploy to production without authentic
 
 ## CSS Framework Reference
 
-When generating views, use the appropriate CSS classes based on detected framework.
+**This skill is framework-agnostic.** Detect the CSS framework from the project (Gemfile, package.json, existing views/layouts) and use appropriate classes directly. Do not use placeholder syntax.
 
-### Tailwind (Default)
-See `css/tailwind.md` for class mappings.
+Follow the process defined in Phase 1.2:
+1. Identify the CSS framework used in the project
+2. Read 3-5 existing views to understand the actual CSS class patterns in use
+3. Use appropriate classes directly in all generated views, matching the project's conventions
 
-### Bootstrap
-See `css/bootstrap.md` for class mappings.
-
-### Bulma
-See `css/bulma.md` for class mappings.
+This approach ensures compatibility with any CSS framework, any version, and any custom theme or wrapper (e.g., Tabler UI over Bootstrap, DaisyUI over Tailwind, etc.).
 
 ---
 

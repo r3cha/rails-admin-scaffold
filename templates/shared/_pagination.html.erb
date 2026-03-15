@@ -3,7 +3,8 @@
 # Variables to replace:
 #   {PAGINATION_GEM} - pagy, kaminari, or will_paginate
 #
-# CSS classes use {CSS_FRAMEWORK} placeholders.
+# Replace all CSS classes below with appropriate classes for the detected framework.
+# Class names shown are semantic hints only.
 %>
 
 <%#
@@ -15,11 +16,11 @@
 <%%== pagy_nav(@pagy) if @pagy %>
 
 <%# For Pagy with info: %>
-<%# <div class="{CSS: pagination-container}">
-  <div class="{CSS: pagination-info}">
+<%# <div class="pagination-container">
+  <div class="pagination-info">
     <%%= pagy_info(@pagy) %>
   </div>
-  <div class="{CSS: pagination-nav}">
+  <div class="pagination-nav">
     <%%== pagy_nav(@pagy) %>
   </div>
 </div> %>
@@ -30,13 +31,13 @@
 %>
 
 <%# For Kaminari:
-<div class="{CSS: pagination-container}">
-  <div class="{CSS: pagination-info}">
+<div class="pagination-container">
+  <div class="pagination-info">
     Showing <%%= @{models}.offset_value + 1 %> to
     <%%= [@{models}.offset_value + @{models}.limit_value, @{models}.total_count].min %> of
     <%%= @{models}.total_count %> entries
   </div>
-  <div class="{CSS: pagination-nav}">
+  <div class="pagination-nav">
     <%%= paginate @{models} %>
   </div>
 </div>
@@ -48,11 +49,11 @@
 %>
 
 <%# For will_paginate:
-<div class="{CSS: pagination-container}">
-  <div class="{CSS: pagination-info}">
+<div class="pagination-container">
+  <div class="pagination-info">
     <%%= page_entries_info @{models} %>
   </div>
-  <div class="{CSS: pagination-nav}">
+  <div class="pagination-nav">
     <%%= will_paginate @{models} %>
   </div>
 </div>

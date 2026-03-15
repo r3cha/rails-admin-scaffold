@@ -11,12 +11,12 @@ This is a template-based code generation skill invoked via `/rails-admin-scaffol
 - SKILL.md: Main skill definition with 5-phase generation workflow
 - README.md: User documentation and installation guide
 - templates/: ERB and Ruby templates for generated code
-- css/: Framework-specific class mappings (Tailwind, Bootstrap, Bulma)
+- css/: (reserved for future use)
 - reference/: Pattern documentation and field type mappings
 
 ## Architecture
 
-Templates use placeholders ({NAMESPACE}, {MODEL}, {CSS: class-name}) replaced during generation. The workflow consists of: Detection → Model Analysis → Interactive Questions → Generation → Verification.
+Templates use placeholders ({NAMESPACE}, {MODEL}) replaced during generation. CSS classes are detected from the project's framework and used directly (no placeholder syntax). The workflow consists of: Detection → Model Analysis → Interactive Questions → Generation → Verification.
 
 ## Supported Features
 

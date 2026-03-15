@@ -11,10 +11,7 @@ This is a **Claude Code skill** (not a gem or Rails app) that generates full-fea
 ```
 ├── SKILL.md              # Main skill definition with 5-phase workflow
 ├── README.md             # User documentation
-├── css/                  # CSS framework class mappings
-│   ├── tailwind.md       # Tailwind CSS classes
-│   ├── bootstrap.md      # Bootstrap 5 classes
-│   └── bulma.md          # Bulma classes
+├── css/                  # (reserved for future use)
 ├── reference/            # Pattern and mapping reference
 │   ├── field-mappings.md # DB column → form input mappings
 │   ├── patterns.md       # Implementation patterns (Ransack, pagination, etc.)
@@ -35,7 +32,7 @@ This is a **Claude Code skill** (not a gem or Rails app) that generates full-fea
 - `{NAMESPACE}` - Admin namespace (admin, backend, etc.)
 - `{MODEL}` - Model class name
 - `{models}` - Pluralized model name
-- `{CSS: class-name}` - Framework-agnostic CSS class tokens
+- CSS classes: Detect the CSS framework from the project and use appropriate classes directly (no placeholder syntax)
 
 **5-Phase Workflow:**
 
@@ -97,7 +94,7 @@ This is a **Claude Code skill** (not a gem or Rails app) that generates full-fea
 └─────────────────────────────────────────┘
 ```
 
-**Framework Abstraction:** CSS classes are defined separately in `css/*.md` files, allowing the same templates to work with Tailwind, Bootstrap, or Bulma.
+**Framework Abstraction:** CSS classes are detected from the project's existing views and applied directly. Templates work with any CSS framework (Tailwind, Bootstrap, Bulma, etc.).
 
 ## How the Skill Works
 
@@ -107,7 +104,8 @@ This is a **Claude Code skill** (not a gem or Rails app) that generates full-fea
 1. `tailwind.config.js` or `config/tailwind.config.js` → Tailwind
 2. `bootstrap` in Gemfile or package.json → Bootstrap
 3. `bulma` in package.json → Bulma
-4. Default → Tailwind
+4. Check existing views/layouts for CSS class patterns
+5. Default → Tailwind
 
 **Pagination detection (Gemfile):**
 - `pagy` → Pagy (recommended)

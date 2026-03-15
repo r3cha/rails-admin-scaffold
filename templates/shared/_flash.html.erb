@@ -1,6 +1,7 @@
 <%# Template: Flash Messages
 #
-# CSS classes use {CSS_FRAMEWORK} placeholders.
+# Replace all CSS classes below with appropriate classes for the detected framework.
+# Class names shown are semantic hints only.
 %>
 
 <%% flash.each do |type, message| %>
@@ -8,24 +9,25 @@
 
   <%%
     # Map Rails flash types to CSS alert classes
+    # Replace these class names with appropriate ones for the detected framework
     alert_class = case type.to_sym
                   when :notice, :success
-                    "{CSS: alert-success}"
+                    "alert-success"
                   when :alert, :error
-                    "{CSS: alert-danger}"
+                    "alert-danger"
                   when :warning
-                    "{CSS: alert-warning}"
+                    "alert-warning"
                   else
-                    "{CSS: alert-info}"
+                    "alert-info"
                   end
   %>
 
-  <div class="{CSS: alert} <%%= alert_class %> {CSS: alert-dismissible}"
+  <div class="alert <%%= alert_class %> alert-dismissible"
        role="alert"
        data-controller="alert"
        data-alert-auto-dismiss-value="5000">
 
-    <div class="{CSS: alert-content}">
+    <div class="alert-content">
       <%# Icon based on type %>
       <%%
         icon_path = case type.to_sym
@@ -40,19 +42,19 @@
                     end
       %>
 
-      <svg class="{CSS: alert-icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<%%= icon_path %>"/>
       </svg>
 
-      <span class="{CSS: alert-message}"><%%= message %></span>
+      <span class="alert-message"><%%= message %></span>
     </div>
 
     <%# Dismiss Button %>
     <button type="button"
-            class="{CSS: alert-dismiss}"
+            class="alert-dismiss"
             data-action="alert#dismiss"
             aria-label="Dismiss">
-      <svg class="{CSS: icon-sm}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
       </svg>
     </button>

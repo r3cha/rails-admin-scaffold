@@ -3,10 +3,10 @@
 # Variables to replace:
 #   {NAMESPACE} - Module name (e.g., Admin)
 #   {namespace} - Lowercase namespace (e.g., admin)
-#   {CSS_FRAMEWORK} - tailwind, bootstrap, or bulma
 #   {APP_NAME} - Application name (Rails.application.class.module_parent_name)
 #
-# CSS classes use {CSS_FRAMEWORK} placeholders.
+# Replace all CSS classes below with appropriate classes for the detected framework.
+# Class names shown are semantic hints only.
 %>
 <!DOCTYPE html>
 <html lang="<%%= I18n.locale %>">
@@ -68,41 +68,41 @@
   </style>
 </head>
 
-<body class="{CSS: body-class}">
+<body class="body-class">
   <div class="admin-layout">
     <%# Sidebar Navigation %>
-    <aside class="admin-sidebar {CSS: sidebar-bg}">
+    <aside class="admin-sidebar sidebar-bg">
       <%%= render "{namespace}/shared/sidebar" %>
     </aside>
 
     <%# Main Content Area %>
-    <main class="admin-main {CSS: main-bg}">
+    <main class="admin-main main-bg">
       <%# Top Header Bar %>
-      <header class="{CSS: header}">
-        <div class="{CSS: header-container}">
+      <header class="header">
+        <div class="header-container">
           <%# Mobile Menu Toggle %>
           <button type="button"
-                  class="{CSS: menu-toggle} {CSS: md-hidden}"
+                  class="menu-toggle md-hidden"
                   onclick="document.querySelector('.admin-sidebar').classList.toggle('open')">
-            <svg class="{CSS: icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
             </svg>
           </button>
 
           <%# Breadcrumb / Page Title (optional) %>
-          <div class="{CSS: header-title}">
+          <div class="header-title">
             <%%= yield :header_title if content_for?(:header_title) %>
           </div>
 
           <%# Right Side: User Menu %>
-          <div class="{CSS: header-right}">
+          <div class="header-right">
             <%# Current User Info %>
             <% if respond_to?(:current_admin_user) && current_admin_user %>
-              <span class="{CSS: text-muted}"><%%= current_admin_user.email %></span>
-              <%%= link_to "Logout", destroy_admin_user_session_path, method: :delete, class: "{CSS: btn-outline} {CSS: btn-sm}" %>
+              <span class="text-muted"><%%= current_admin_user.email %></span>
+              <%%= link_to "Logout", destroy_admin_user_session_path, method: :delete, class: "btn-outline btn-sm" %>
             <% elsif respond_to?(:current_user) && current_user %>
-              <span class="{CSS: text-muted}"><%%= current_user.email %></span>
-              <%%= link_to "Logout", destroy_user_session_path, method: :delete, class: "{CSS: btn-outline} {CSS: btn-sm}" %>
+              <span class="text-muted"><%%= current_user.email %></span>
+              <%%= link_to "Logout", destroy_user_session_path, method: :delete, class: "btn-outline btn-sm" %>
             <% end %>
           </div>
         </div>
@@ -112,13 +112,13 @@
       <%%= render "{namespace}/shared/flash" %>
 
       <%# Page Content %>
-      <div class="{CSS: content-container}">
+      <div class="content-container">
         <%%= yield %>
       </div>
 
       <%# Footer %>
-      <footer class="{CSS: footer}">
-        <p class="{CSS: text-muted} {CSS: text-sm}">
+      <footer class="footer">
+        <p class="text-muted text-sm">
           {APP_NAME} Admin &copy; <%%= Time.current.year %>
         </p>
       </footer>
@@ -126,7 +126,7 @@
   </div>
 
   <%# Mobile Sidebar Overlay %>
-  <div class="admin-overlay hidden {CSS: md-hidden}"
+  <div class="admin-overlay hidden md-hidden"
        onclick="document.querySelector('.admin-sidebar').classList.remove('open'); this.classList.add('hidden')">
   </div>
 
@@ -143,7 +143,7 @@
           }
         });
 
-        document.querySelector('.{CSS: menu-toggle}')?.addEventListener('click', function() {
+        document.querySelector('.menu-toggle')?.addEventListener('click', function() {
           overlay.classList.remove('hidden');
         });
       }

@@ -7,22 +7,23 @@
 #   {models} - Lowercase plural (e.g., users)
 #   {MODEL_TITLE} - Human readable singular (e.g., "User")
 #
-# CSS classes use {CSS_FRAMEWORK} placeholders.
+# Replace all CSS classes below with appropriate classes for the detected framework.
+# Class names shown are semantic hints only.
 %>
 
-<div class="{CSS: page-header}">
-  <div class="{CSS: header-content}">
-    <div class="{CSS: breadcrumb}">
-      <%%= link_to "{MODEL_TITLE}s", {namespace}_{models}_path, class: "{CSS: breadcrumb-link}" %>
-      <span class="{CSS: breadcrumb-separator}">/</span>
-      <span class="{CSS: breadcrumb-current}">New</span>
+<div class="page-header">
+  <div class="header-content">
+    <div class="breadcrumb">
+      <%%= link_to "{MODEL_TITLE}s", {namespace}_{models}_path, class: "breadcrumb-link" %>
+      <span class="breadcrumb-separator">/</span>
+      <span class="breadcrumb-current">New</span>
     </div>
-    <h1 class="{CSS: page-title}">New {MODEL_TITLE}</h1>
+    <h1 class="page-title">New {MODEL_TITLE}</h1>
   </div>
 </div>
 
-<div class="{CSS: card}">
-  <div class="{CSS: card-body}">
+<div class="card">
+  <div class="card-body">
     <%%= render "{namespace}/{models}/form", {model}: @{model} %>
   </div>
 </div>

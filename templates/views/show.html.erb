@@ -10,48 +10,49 @@
 #   {ASSOCIATIONS} - Array of associations to show
 #   {HAS_SOFT_DELETE} - true/false
 #
-# CSS classes use {CSS_FRAMEWORK} placeholders.
+# Replace all CSS classes below with appropriate classes for the detected framework.
+# Class names shown are semantic hints only.
 %>
 
-<div class="{CSS: page-header}">
-  <div class="{CSS: header-content}">
-    <div class="{CSS: breadcrumb}">
-      <%%= link_to "{MODEL_TITLE}s", {namespace}_{models}_path, class: "{CSS: breadcrumb-link}" %>
-      <span class="{CSS: breadcrumb-separator}">/</span>
-      <span class="{CSS: breadcrumb-current}"><%%= @{model}.to_s %></span>
+<div class="page-header">
+  <div class="header-content">
+    <div class="breadcrumb">
+      <%%= link_to "{MODEL_TITLE}s", {namespace}_{models}_path, class: "breadcrumb-link" %>
+      <span class="breadcrumb-separator">/</span>
+      <span class="breadcrumb-current"><%%= @{model}.to_s %></span>
     </div>
-    <h1 class="{CSS: page-title}">{MODEL_TITLE} Details</h1>
+    <h1 class="page-title">{MODEL_TITLE} Details</h1>
   </div>
-  <div class="{CSS: header-actions}">
-    <%%= link_to "Edit", edit_{namespace}_{model}_path(@{model}), class: "{CSS: btn-primary}" %>
-    <%%= link_to "Back to List", {namespace}_{models}_path, class: "{CSS: btn-outline}" %>
+  <div class="header-actions">
+    <%%= link_to "Edit", edit_{namespace}_{model}_path(@{model}), class: "btn-primary" %>
+    <%%= link_to "Back to List", {namespace}_{models}_path, class: "btn-outline" %>
   </div>
 </div>
 
 <%# Soft Delete Warning Banner %>
 <% if {HAS_SOFT_DELETE} && @{model}.respond_to?(:discarded?) && @{model}.discarded? %>
-  <div class="{CSS: alert-warning} {CSS: mb-4}">
+  <div class="alert-warning mb-4">
     <strong>This record has been deleted.</strong>
     Deleted at: <%%= @{model}.discarded_at&.strftime("%Y-%m-%d %H:%M") %>
     <%%= button_to "Restore",
                   restore_{namespace}_{model}_path(@{model}),
                   method: :patch,
-                  class: "{CSS: btn-warning} {CSS: btn-sm} {CSS: ml-4}" %>
+                  class: "btn-warning btn-sm ml-4" %>
   </div>
 <% end %>
 
-<div class="{CSS: grid-2}">
+<div class="grid-2">
   <%# Main Details Card %>
-  <div class="{CSS: card}">
-    <div class="{CSS: card-header}">
-      <h2 class="{CSS: card-title}">Details</h2>
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Details</h2>
     </div>
-    <div class="{CSS: card-body}">
-      <dl class="{CSS: description-list}">
+    <div class="card-body">
+      <dl class="description-list">
         <%# ID %>
-        <div class="{CSS: dl-row}">
-          <dt class="{CSS: dl-term}">ID</dt>
-          <dd class="{CSS: dl-detail}"><%%= @{model}.id %></dd>
+        <div class="dl-row">
+          <dt class="dl-term">ID</dt>
+          <dd class="dl-detail"><%%= @{model}.id %></dd>
         </div>
 
         <%#
@@ -61,169 +62,169 @@
         %>
 
         <%# String Field %>
-        <%# <div class="{CSS: dl-row}">
-          <dt class="{CSS: dl-term}">Name</dt>
-          <dd class="{CSS: dl-detail}"><%%= @{model}.name %></dd>
+        <%# <div class="dl-row">
+          <dt class="dl-term">Name</dt>
+          <dd class="dl-detail"><%%= @{model}.name %></dd>
         </div> %>
 
         <%# Text Field (potentially long) %>
-        <%# <div class="{CSS: dl-row}">
-          <dt class="{CSS: dl-term}">Description</dt>
-          <dd class="{CSS: dl-detail}"><%%= simple_format(@{model}.description) %></dd>
+        <%# <div class="dl-row">
+          <dt class="dl-term">Description</dt>
+          <dd class="dl-detail"><%%= simple_format(@{model}.description) %></dd>
         </div> %>
 
         <%# Boolean Field %>
-        <%# <div class="{CSS: dl-row}">
-          <dt class="{CSS: dl-term}">Active</dt>
-          <dd class="{CSS: dl-detail}">
-            <span class="{CSS: badge} <%%= @{model}.active? ? '{CSS: badge-success}' : '{CSS: badge-secondary}' %>">
+        <%# <div class="dl-row">
+          <dt class="dl-term">Active</dt>
+          <dd class="dl-detail">
+            <span class="badge <%%= @{model}.active? ? 'badge-success' : 'badge-secondary' %>">
               <%%= @{model}.active? ? 'Yes' : 'No' %>
             </span>
           </dd>
         </div> %>
 
         <%# Enum Field %>
-        <%# <div class="{CSS: dl-row}">
-          <dt class="{CSS: dl-term}">Status</dt>
-          <dd class="{CSS: dl-detail}">
-            <span class="{CSS: badge} {CSS: badge-status-<%%= @{model}.status %>}">
+        <%# <div class="dl-row">
+          <dt class="dl-term">Status</dt>
+          <dd class="dl-detail">
+            <span class="badge badge-status-<%%= @{model}.status %>">
               <%%= @{model}.status.humanize %>
             </span>
           </dd>
         </div> %>
 
         <%# Belongs To Association %>
-        <%# <div class="{CSS: dl-row}">
-          <dt class="{CSS: dl-term}">Author</dt>
-          <dd class="{CSS: dl-detail}">
+        <%# <div class="dl-row">
+          <dt class="dl-term">Author</dt>
+          <dd class="dl-detail">
             <% if @{model}.author %>
-              <%%= link_to @{model}.author.name, {namespace}_user_path(@{model}.author), class: "{CSS: link}" %>
+              <%%= link_to @{model}.author.name, {namespace}_user_path(@{model}.author), class: "link" %>
             <% else %>
-              <span class="{CSS: text-muted}">None</span>
+              <span class="text-muted">None</span>
             <% end %>
           </dd>
         </div> %>
 
         <%# JSON/JSONB Field %>
-        <%# <div class="{CSS: dl-row}">
-          <dt class="{CSS: dl-term}">Metadata</dt>
-          <dd class="{CSS: dl-detail}">
+        <%# <div class="dl-row">
+          <dt class="dl-term">Metadata</dt>
+          <dd class="dl-detail">
             <% if @{model}.metadata.present? %>
-              <pre class="{CSS: code-block}"><%%= JSON.pretty_generate(@{model}.metadata) %></pre>
+              <pre class="code-block"><%%= JSON.pretty_generate(@{model}.metadata) %></pre>
             <% else %>
-              <span class="{CSS: text-muted}">Empty</span>
+              <span class="text-muted">Empty</span>
             <% end %>
           </dd>
         </div> %>
 
         <%# Active Storage Single Attachment %>
-        <%# <div class="{CSS: dl-row}">
-          <dt class="{CSS: dl-term}">Avatar</dt>
-          <dd class="{CSS: dl-detail}">
+        <%# <div class="dl-row">
+          <dt class="dl-term">Avatar</dt>
+          <dd class="dl-detail">
             <% if @{model}.avatar.attached? %>
               <% if @{model}.avatar.image? %>
-                <%%= image_tag @{model}.avatar.variant(resize_to_limit: [200, 200]), class: "{CSS: img-thumbnail}" %>
+                <%%= image_tag @{model}.avatar.variant(resize_to_limit: [200, 200]), class: "img-thumbnail" %>
               <% else %>
-                <%%= link_to @{model}.avatar.filename, rails_blob_path(@{model}.avatar, disposition: "attachment"), class: "{CSS: link}" %>
+                <%%= link_to @{model}.avatar.filename, rails_blob_path(@{model}.avatar, disposition: "attachment"), class: "link" %>
               <% end %>
             <% else %>
-              <span class="{CSS: text-muted}">No file attached</span>
+              <span class="text-muted">No file attached</span>
             <% end %>
           </dd>
         </div> %>
 
         <%# Active Storage Multiple Attachments %>
-        <%# <div class="{CSS: dl-row}">
-          <dt class="{CSS: dl-term}">Images</dt>
-          <dd class="{CSS: dl-detail}">
+        <%# <div class="dl-row">
+          <dt class="dl-term">Images</dt>
+          <dd class="dl-detail">
             <% if @{model}.images.attached? %>
-              <div class="{CSS: image-grid}">
+              <div class="image-grid">
                 <% @{model}.images.each do |image| %>
                   <% if image.image? %>
-                    <%%= image_tag image.variant(resize_to_limit: [150, 150]), class: "{CSS: img-thumbnail}" %>
+                    <%%= image_tag image.variant(resize_to_limit: [150, 150]), class: "img-thumbnail" %>
                   <% else %>
-                    <%%= link_to image.filename, rails_blob_path(image, disposition: "attachment"), class: "{CSS: link}" %>
+                    <%%= link_to image.filename, rails_blob_path(image, disposition: "attachment"), class: "link" %>
                   <% end %>
                 <% end %>
               </div>
             <% else %>
-              <span class="{CSS: text-muted}">No files attached</span>
+              <span class="text-muted">No files attached</span>
             <% end %>
           </dd>
         </div> %>
 
         <%# Timestamps %>
-        <div class="{CSS: dl-row}">
-          <dt class="{CSS: dl-term}">Created At</dt>
-          <dd class="{CSS: dl-detail}"><%%= @{model}.created_at&.strftime("%Y-%m-%d %H:%M:%S") %></dd>
+        <div class="dl-row">
+          <dt class="dl-term">Created At</dt>
+          <dd class="dl-detail"><%%= @{model}.created_at&.strftime("%Y-%m-%d %H:%M:%S") %></dd>
         </div>
-        <div class="{CSS: dl-row}">
-          <dt class="{CSS: dl-term}">Updated At</dt>
-          <dd class="{CSS: dl-detail}"><%%= @{model}.updated_at&.strftime("%Y-%m-%d %H:%M:%S") %></dd>
+        <div class="dl-row">
+          <dt class="dl-term">Updated At</dt>
+          <dd class="dl-detail"><%%= @{model}.updated_at&.strftime("%Y-%m-%d %H:%M:%S") %></dd>
         </div>
       </dl>
     </div>
   </div>
 
   <%# Associations Panel %>
-  <div class="{CSS: card}">
-    <div class="{CSS: card-header}">
-      <h2 class="{CSS: card-title}">Related Records</h2>
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Related Records</h2>
     </div>
-    <div class="{CSS: card-body}">
+    <div class="card-body">
       <%#
       # HAS MANY ASSOCIATIONS:
       # Replace with actual associations from model analysis.
       %>
 
       <%# Example: has_many :comments %>
-      <%# <div class="{CSS: association-section}">
-        <h3 class="{CSS: section-title}">Comments (<%%= @{model}.comments.count %>)</h3>
+      <%# <div class="association-section">
+        <h3 class="section-title">Comments (<%%= @{model}.comments.count %>)</h3>
         <% if @{model}.comments.any? %>
-          <ul class="{CSS: list}">
+          <ul class="list">
             <% @{model}.comments.limit(5).each do |comment| %>
-              <li class="{CSS: list-item}">
-                <%%= link_to comment.to_s, {namespace}_comment_path(comment), class: "{CSS: link}" %>
-                <span class="{CSS: text-muted} {CSS: text-sm}">
+              <li class="list-item">
+                <%%= link_to comment.to_s, {namespace}_comment_path(comment), class: "link" %>
+                <span class="text-muted text-sm">
                   <%%= comment.created_at.strftime("%Y-%m-%d") %>
                 </span>
               </li>
             <% end %>
           </ul>
           <% if @{model}.comments.count > 5 %>
-            <%%= link_to "View all comments", {namespace}_comments_path(q: { {model}_id_eq: @{model}.id }), class: "{CSS: link}" %>
+            <%%= link_to "View all comments", {namespace}_comments_path(q: { {model}_id_eq: @{model}.id }), class: "link" %>
           <% end %>
         <% else %>
-          <p class="{CSS: text-muted}">No comments yet.</p>
+          <p class="text-muted">No comments yet.</p>
         <% end %>
       </div> %>
 
-      <p class="{CSS: text-muted}">No related records configured.</p>
+      <p class="text-muted">No related records configured.</p>
     </div>
   </div>
 </div>
 
 <%# Action Buttons %>
-<div class="{CSS: action-bar} {CSS: mt-4}">
-  <%%= link_to "Edit", edit_{namespace}_{model}_path(@{model}), class: "{CSS: btn-primary}" %>
+<div class="action-bar mt-4">
+  <%%= link_to "Edit", edit_{namespace}_{model}_path(@{model}), class: "btn-primary" %>
 
   <% if {HAS_SOFT_DELETE} && @{model}.respond_to?(:discarded?) && @{model}.discarded? %>
     <%%= button_to "Restore",
                   restore_{namespace}_{model}_path(@{model}),
                   method: :patch,
-                  class: "{CSS: btn-success}" %>
+                  class: "btn-success" %>
     <%%= button_to "Permanently Delete",
                   {namespace}_{model}_path(@{model}),
                   method: :delete,
-                  class: "{CSS: btn-danger}",
+                  class: "btn-danger",
                   data: { turbo_confirm: "This will permanently delete the record. Are you sure?" } %>
   <% else %>
     <%%= button_to "Delete",
                   {namespace}_{model}_path(@{model}),
                   method: :delete,
-                  class: "{CSS: btn-danger}",
+                  class: "btn-danger",
                   data: { turbo_confirm: "Are you sure you want to delete this {model}?" } %>
   <% end %>
 
-  <%%= link_to "Back to List", {namespace}_{models}_path, class: "{CSS: btn-outline}" %>
+  <%%= link_to "Back to List", {namespace}_{models}_path, class: "btn-outline" %>
 </div>
